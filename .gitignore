@@ -1,0 +1,7 @@
+/vendor/
+/.agent/
+/.gitddd/
+/.vscode/
+/composer.phar
+/scratch/
+/uploads/
