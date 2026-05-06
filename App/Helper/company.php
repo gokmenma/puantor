@@ -1,8 +1,9 @@
 <?php
 
-require_once 'Database/db.php';
-require_once 'Model/MyFirmModel.php';
-require_once "App/Helper/security.php";
+!defined("ROOT") ? define("ROOT", dirname(dirname(__DIR__))) : null;
+require_once ROOT . '/Database/db.php';
+require_once ROOT . '/Model/MyFirmModel.php';
+require_once ROOT . "/App/Helper/security.php";
 
 use Database\Db;
 use App\Helper\Security;

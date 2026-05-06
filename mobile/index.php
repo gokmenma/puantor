@@ -124,6 +124,7 @@ include_once __DIR__ . "/inc/head.php";
     </div>
 
     <!-- Bootstrap 5 / Tabler JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.4.0/dist/js/tabler.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </body>

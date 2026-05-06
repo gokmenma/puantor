@@ -30,6 +30,7 @@ jobs:
             **/.gitkeep
             **/README.md
             **/database.sql
+            **/Database/db.php
           log-level: standard
           dry-run: false
           dangerous-clean-slate: false

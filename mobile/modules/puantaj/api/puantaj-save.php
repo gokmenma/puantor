@@ -1,35 +1,42 @@
 <?php
 // Puantor Mobil - Hızlı Puantaj Kaydetme API
-define("ROOT", dirname(dirname(dirname(dirname(__DIR__)))));
-require_once ROOT . "/Database/require.php";
-require_once ROOT . "/Model/Puantaj.php";
-require_once ROOT . "/Model/Persons.php";
-require_once ROOT . "/Model/Wages.php";
-require_once ROOT . "/Model/SettingsModel.php";
-
-session_start();
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['user'])) {
-    echo json_encode(['status' => 'error', 'message' => 'Yetkisiz erişim']);
-    exit();
-}
-
-$person_id = intval($_POST['person_id'] ?? 0);
-$date = $_POST['date'] ?? '';
-$type_id = intval($_POST['type_id'] ?? 0); // 1: G, 2: X, 3: İ, 4: R
-
-if (!$person_id || !$date || !$type_id) {
-    echo json_encode(['status' => 'error', 'message' => 'Eksik parametreler']);
-    exit();
-}
-
-$puantajObj = new Puantaj();
-$personModel = new Persons();
-$wagesModel = new Wages();
-$settingsModel = new SettingsModel();
+// Prevent PHP warnings, notices or errors from polluting the JSON output stream
+ini_set('display_errors', 0);
+error_reporting(0);
 
 try {
+    define("ROOT", dirname(dirname(dirname(dirname(__DIR__)))));
+    require_once ROOT . "/Database/require.php";
+    require_once ROOT . "/Model/Puantaj.php";
+    require_once ROOT . "/Model/Persons.php";
+    require_once ROOT . "/Model/Wages.php";
+    require_once ROOT . "/Model/SettingsModel.php";
+
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    if (!isset($_SESSION['user'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Yetkisiz erişim']);
+        exit();
+    }
+
+    $person_id = intval($_POST['person_id'] ?? 0);
+    $date = $_POST['date'] ?? '';
+    $type_id = intval($_POST['type_id'] ?? 0); // 1: G, 2: X, 3: İ, 4: R
+
+    if (!$person_id || !$date || !$type_id) {
+        echo json_encode(['status' => 'error', 'message' => 'Eksik parametreler']);
+        exit();
+    }
+
+    $puantajObj = new Puantaj();
+    $personModel = new Persons();
+    $wagesModel = new Wages();
+    $settingsModel = new SettingsModel();
+
     $work_hour = $settingsModel->getSettings("work_hour")->set_value ?? 8;
     $work_hour = floatval(str_replace(',', '.', $work_hour));
     if ($work_hour <= 0) $work_hour = 8;
