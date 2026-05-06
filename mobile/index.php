@@ -32,14 +32,69 @@ if (isset($_GET['theme'])) {
 }
 $theme = $_SESSION['theme'] ?? 'light';
 
-// Aktif sayfa tayini
-$page = isset($_GET["p"]) ? $_GET["p"] : "home";
-$allowed_pages = ["home", "persons", "person_add", "puantaj", "puantaj_detail", "projects", "finance", "payroll", "todos", "more"];
-if (!in_array($page, $allowed_pages)) {
-    $page = "home";
-}
+// Aktif rota/sayfa tayini
+$route = isset($_GET["route"]) ? trim($_GET["route"], "/") : "";
 
-$title = "Puantor Mobil | " . ucfirst($page);
+// Temiz rotaları modüler yapıya eşleştir
+switch ($route) {
+    case '':
+    case 'home':
+    case 'dashboard':
+        $title = "Puantaj Takip";
+        $page_file = "modules/dashboard/index.php";
+        $active_page = "home";
+        break;
+    case 'persons':
+        $title = "Personeller";
+        $page_file = "modules/persons/index.php";
+        $active_page = "persons";
+        break;
+    case 'person-add':
+        $title = "Yeni Personel Ekle";
+        $page_file = "modules/persons/add.php";
+        $active_page = "persons";
+        break;
+    case 'puantaj':
+        $title = "Hızlı Puantaj";
+        $page_file = "modules/puantaj/index.php";
+        $active_page = "puantaj";
+        break;
+    case 'puantaj-detail':
+        $title = "Aylık Puantaj";
+        $page_file = "modules/puantaj/detail.php";
+        $active_page = "puantaj";
+        break;
+    case 'projects':
+        $title = "Projeler";
+        $page_file = "modules/projects/index.php";
+        $active_page = "more";
+        break;
+    case 'finance':
+        $title = "Kasa & Finans";
+        $page_file = "modules/finance/index.php";
+        $active_page = "more";
+        break;
+    case 'payroll':
+        $title = "Bordrolar";
+        $page_file = "modules/payroll/index.php";
+        $active_page = "more";
+        break;
+    case 'todos':
+        $title = "Yapılacaklar";
+        $page_file = "modules/todos/index.php";
+        $active_page = "more";
+        break;
+    case 'more':
+        $title = "Daha Fazla";
+        $page_file = "modules/more/index.php";
+        $active_page = "more";
+        break;
+    default:
+        $title = "Puantaj Takip";
+        $page_file = "modules/dashboard/index.php";
+        $active_page = "home";
+        break;
+}
 
 // Başlık şablonunu yükleme
 include_once __DIR__ . "/inc/head.php";
@@ -54,45 +109,11 @@ include_once __DIR__ . "/inc/head.php";
         <!-- Dinamik Alt Sayfa İçeriği -->
         <main class="app-content">
             <?php 
-            switch ($page) {
-                case 'person_add':
-                    $title = "Yeni Personel Ekle";
-                    $page_file = "person_add.php";
-                    break;
-                case 'puantaj_detail':
-                    $title = "Detaylı Puantaj";
-                    $page_file = "puantaj_detail.php";
-                    break;
-                case 'projects':
-                    $title = "Projeler";
-                    $page_file = "projects.php";
-                    break;
-                case 'finance':
-                    $title = "Kasa & Finans";
-                    $page_file = "finance.php";
-                    break;
-                case 'payroll':
-                    $title = "Bordrolar";
-                    $page_file = "payroll.php";
-                    break;
-                case 'todos':
-                    $title = "Yapılacaklar";
-                    $page_file = "todos.php";
-                    break;
-                case 'more':
-                    $title = "Daha Fazla";
-                    $page_file = "more.php";
-                    break;
-                default:
-                    $title = "Puantaj Takip";
-                    $page_file = "home.php";
-                    break;
-            }
-            $page_file = __DIR__ . DIRECTORY_SEPARATOR . "pages" . DIRECTORY_SEPARATOR . $page_file;
-            if (file_exists($page_file)) {
-                include_once $page_file;
+            $page_file_path = __DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $page_file);
+            if (file_exists($page_file_path)) {
+                include_once $page_file_path;
             } else {
-                echo "<div class='alert alert-warning'>Sayfa bulunamadı: " . htmlspecialchars($page_file) . "</div>";
+                echo "<div class='alert alert-warning'>Modül sayfası bulunamadı: " . htmlspecialchars($page_file_path) . "</div>";
             }
             ?>
         </main>
