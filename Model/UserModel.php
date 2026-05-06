@@ -49,7 +49,7 @@ class UserModel extends Model
     function getUsersByFirm($firm_id)
     {
         $user_id = $_SESSION["user"]->id;
-        $sql = $this->db->prepare("SELECT * FROM $this->table WHERE (firm_id = ? or id = ?) and parent_id != 0");
+        $sql = $this->db->prepare("SELECT * FROM $this->table WHERE (firm_id = ? or id = ?)");
         $sql->execute(array($firm_id, $user_id));
         return $sql->fetchAll(PDO::FETCH_OBJ);
     }

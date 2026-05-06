@@ -25,6 +25,7 @@ try {
 
     $person_id = intval($_POST['person_id'] ?? 0);
     $date = $_POST['date'] ?? '';
+    $date = str_replace('-', '', $date); // Strip hyphens to match desktop database format (e.g. 20260506)
     $type_id = intval($_POST['type_id'] ?? 0); // 1: G, 2: X, 3: İ, 4: R
 
     if (!$person_id || !$date || !$type_id) {
@@ -61,7 +62,7 @@ try {
     // Varsayılan Proje tayini
     $project_id = $puantajObj->getPuantajProjectId($person_id, $date);
     if (!$project_id) {
-        $project_id = intval($personModel->getPersonByField($person_id, 'project_id')->project_id ?? 0);
+        $project_id = intval($personModel->getPersonByField($person_id, 'project_id') ?? 0);
     }
 
     $data = [

@@ -171,20 +171,32 @@ class CaseTransactions extends Model
 
     public function getFirmBalance($firm_id)
     {
+        // Firmanın kasalarını al
+        $cases = $this->caseObj->allCaseWithFirmId();
+        $case_ids = array_map(function ($case) {
+            return $case->id;
+        }, $cases);
+
+        if (empty($case_ids)) {
+            return (object)[
+                'total_income' => 0,
+                'total_expense' => 0
+            ];
+        }
+
+        $ids_str = implode(",", $case_ids);
         $query = "
             SELECT 
-                COALESCE(SUM(CASE WHEN ct.type_id = 1 THEN ct.amount ELSE 0 END), 0) AS total_income,
-                COALESCE(SUM(CASE WHEN ct.type_id = 2 THEN ct.amount ELSE 0 END), 0) AS total_expense
+                COALESCE(SUM(CASE WHEN type_id = 1 THEN amount ELSE 0 END), 0) AS total_income,
+                COALESCE(SUM(CASE WHEN type_id = 2 THEN amount ELSE 0 END), 0) AS total_expense
             FROM 
-                case_transactions ct
-            JOIN 
-                cases c ON ct.case_id = c.id
+                $this->sql_table
             WHERE 
-                c.firm_id = :firm_id
+                case_id IN ($ids_str)
         ";
 
         $stmt = $this->db->prepare($query);
-        $stmt->execute(["firm_id" => $firm_id]);
+        $stmt->execute();
         return $stmt->fetch(PDO::FETCH_OBJ);
     }
 }

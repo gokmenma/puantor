@@ -2,6 +2,9 @@
 // Puantor Mobil - Yeni Personel Ekleme
 require_once ROOT . "/Model/Persons.php";
 require_once ROOT . "/Model/Projects.php";
+require_once ROOT . "/App/Helper/security.php";
+
+use App\Helper\Security;
 
 $personsModel = new Persons();
 $projectsModel = new Projects();
@@ -11,15 +14,18 @@ $projects = $projectsModel->getProjectsByFirm($firm_id);
 
 $message = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_person'])) {
+    $tc_no = trim($_POST['tc_no'] ?? '');
+    if (strlen($tc_no) > 11) {
+        $tc_no = substr($tc_no, 0, 11);
+    }
     $data = [
         'firm_id' => $firm_id,
         'full_name' => $_POST['full_name'],
-        'tc_no' => $_POST['tc_no'],
+        'kimlik_no' => Security::encrypt($tc_no),
         'phone' => $_POST['phone'],
-        'daily_wage' => $_POST['daily_wage'],
+        'daily_wages' => $_POST['daily_wage'],
         'job_start_date' => $_POST['job_start_date'],
-        'project_id' => $_POST['project_id'],
-        'status' => 1
+        'project_id' => $_POST['project_id']
     ];
     
     // Basit bir kaydetme simülasyonu / Model kullanımı
@@ -47,40 +53,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_person'])) {
 
   <div class="mobile-card p-3">
     <form method="POST" action="">
-      <div class="mb-3">
-        <label class="form-label text-muted text-xs text-uppercase font-weight-bold">Ad Soyad</label>
-        <input type="text" name="full_name" class="form-control" placeholder="Örn: Ahmet Yılmaz" required>
+      <div class="form-floating mb-3">
+        <input type="text" name="full_name" class="form-control" id="floatingFullName" placeholder="Ad Soyad" required>
+        <label for="floatingFullName">Ad Soyad</label>
       </div>
 
-      <div class="mb-3">
-        <label class="form-label text-muted text-xs text-uppercase font-weight-bold">T.C. Kimlik No</label>
-        <input type="number" name="tc_no" class="form-control" placeholder="11 Haneli">
+      <div class="form-floating mb-3">
+        <input type="text" name="tc_no" class="form-control" id="floatingTcNo" placeholder="11 Haneli" inputmode="numeric" pattern="[0-9]*" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 11);">
+        <label for="floatingTcNo">T.C. Kimlik No</label>
       </div>
 
-      <div class="mb-3">
-        <label class="form-label text-muted text-xs text-uppercase font-weight-bold">Telefon</label>
-        <input type="tel" name="phone" class="form-control" placeholder="05XX XXX XX XX">
+      <div class="form-floating mb-3">
+        <input type="tel" name="phone" class="form-control" id="floatingPhone" placeholder="05XX XXX XX XX">
+        <label for="floatingPhone">Telefon</label>
       </div>
 
       <div class="row g-3 mb-3">
         <div class="col-6">
-          <label class="form-label text-muted text-xs text-uppercase font-weight-bold">Günlük Yevmiye</label>
-          <input type="number" name="daily_wage" class="form-control" placeholder="0.00">
+          <div class="form-floating">
+            <input type="number" name="daily_wage" class="form-control" id="floatingDailyWage" placeholder="0.00">
+            <label for="floatingDailyWage">Yevmiye</label>
+          </div>
         </div>
         <div class="col-6">
-          <label class="form-label text-muted text-xs text-uppercase font-weight-bold">Giriş Tarihi</label>
-          <input type="date" name="job_start_date" class="form-control" value="<?php echo date('Y-m-d'); ?>">
+          <div class="form-floating">
+            <input type="date" name="job_start_date" class="form-control" id="floatingStartDate" value="<?php echo date('Y-m-d'); ?>" placeholder="Giriş Tarihi">
+            <label for="floatingStartDate">Giriş Tarihi</label>
+          </div>
         </div>
       </div>
 
-      <div class="mb-4">
-        <label class="form-label text-muted text-xs text-uppercase font-weight-bold">Varsayılan Proje</label>
-        <select name="project_id" class="form-select">
+      <div class="form-floating mb-4">
+        <select name="project_id" id="floatingProject" class="form-select select2-init">
           <option value="0">Proje Seçin</option>
           <?php foreach ($projects as $project): ?>
             <option value="<?php echo $project->id; ?>"><?php echo htmlspecialchars($project->project_name); ?></option>
           <?php endforeach; ?>
         </select>
+        <label for="floatingProject">Varsayılan Proje</label>
       </div>
 
       <button type="submit" name="save_person" class="btn btn-primary w-100 py-2" style="border-radius: 12px; font-weight: 600;">

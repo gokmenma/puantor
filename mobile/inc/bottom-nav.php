@@ -18,7 +18,12 @@ $active_page = $active_page ?? 'home';
     <span>Puantaj</span>
   </a>
 
-  <a href="more" class="nav-item <?php echo ($active_page == 'more') ? 'active' : ''; ?>">
+  <a href="finance" class="nav-item <?php echo ($active_page == 'more' && strpos($_SERVER['REQUEST_URI'], 'finance') !== false || $active_page == 'finance') ? 'active' : ''; ?>">
+    <i class="ti ti-wallet"></i>
+    <span>Kasa</span>
+  </a>
+
+  <a href="more" class="nav-item <?php echo ($active_page == 'more' && strpos($_SERVER['REQUEST_URI'], 'finance') === false) ? 'active' : ''; ?>">
     <i class="ti ti-grid-pattern"></i>
     <span>Menü</span>
   </a>

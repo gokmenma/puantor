@@ -1,16 +1,38 @@
 <?php
-require_once "../../Database/require.php";
-require_once "../../Model/Cases.php";
-require_once "../../Model/CaseTransactions.php";
-require_once "../../App/Helper/date.php";
-require_once "../../App/Helper/helper.php";
-require_once "../../App/Helper/financial.php";
-require_once "../../Model/DefinesModel.php";
-require_once "../../App/Helper/security.php";
-require_once "../../Model/Auths.php";
-require_once "../../Model/ProjectIncomeExpense.php";
-require_once "../../Model/Bordro.php";
-require_once "../../Model/Persons.php";
+ob_start();
+error_reporting(0);
+ini_set('display_errors', 0);
+if (isset($_SERVER['HTTP_ORIGIN'])) {
+    $origin = $_SERVER['HTTP_ORIGIN'];
+    if (strpos($origin, 'puantor.site') !== false || strpos($origin, 'localhost') !== false || strpos($origin, '127.0.0.1') !== false) {
+        header("Access-Control-Allow-Origin: " . $origin);
+        header("Access-Control-Allow-Credentials: true");
+        header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+        header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+    }
+}
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    exit(0);
+}
+
+if (!defined('ROOT')) {
+    define("ROOT", dirname(dirname(__DIR__)));
+}
+
+ob_start();
+
+require_once ROOT . "/Database/require.php";
+require_once ROOT . "/Model/Cases.php";
+require_once ROOT . "/Model/CaseTransactions.php";
+require_once ROOT . "/App/Helper/date.php";
+require_once ROOT . "/App/Helper/helper.php";
+require_once ROOT . "/App/Helper/financial.php";
+require_once ROOT . "/Model/DefinesModel.php";
+require_once ROOT . "/App/Helper/security.php";
+require_once ROOT . "/Model/Auths.php";
+require_once ROOT . "/Model/ProjectIncomeExpense.php";
+require_once ROOT . "/Model/Bordro.php";
+require_once ROOT . "/Model/Persons.php";
 
 
 
@@ -141,10 +163,12 @@ if ($_POST["action"] == "getSubTypes") {
     $type = $_POST["type"];
     $subTypes = $define->getIncExpTypesByFirmandType($type);
     $res = [
-
         "subTypes" => $subTypes
     ];
+    ob_clean();
+    header('Content-Type: application/json');
     echo json_encode($res);
+    exit;
 }
 
 

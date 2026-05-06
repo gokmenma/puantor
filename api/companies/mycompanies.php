@@ -63,6 +63,34 @@ if ($_POST["action"] == "saveMyCompany") {
         $status = "success";
         if ($id == 0) {
             $message = "Firma başarıyla kaydedildi.";
+            
+            // Automatically create a default Admin role and assign all permissions
+            require_once "../../Model/RolesModel.php";
+            require_once "../../Model/Auths.php";
+            require_once "../../Model/RoleAuthsModel.php";
+            
+            $Roles = new Roles();
+            $Auths = new Auths();
+            $RoleAuths = new RoleAuthsModel();
+            
+            $decryptedFirmId = Security::decrypt($lastInsertId);
+            
+            $roleData = [
+                "id" => 0,
+                "firm_id" => $decryptedFirmId,
+                "roleName" => 'Admin',
+                "main_role" => 1
+            ];
+            $lastInsertRoleId = $Roles->saveWithAttr($roleData);
+            
+            $authsList = $Auths->all();
+            $authsIds = implode(',', array_column($authsList, 'id'));
+            
+            $roleAuthData = [
+                "role_id" => Security::decrypt($lastInsertRoleId),
+                "auth_ids" => $authsIds
+            ];
+            $RoleAuths->saveWithAttr($roleAuthData);
         } else {
             $message = "Firma başarıyla güncellendi.";
         }

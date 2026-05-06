@@ -69,6 +69,49 @@ if ($_SESSION["user"]->parent_id != 0) {
     $firm_id = $_SESSION['firm_id'];
     $user = $User->getUserByEmailAndFirm($email, $firm_id);
     $_SESSION['user'] = $user;
+} else {
+    // Eğer ana kullanıcı ise, aktif firma ID'sini kullanıcının firm_id alanına senkronize ederiz
+    if (isset($_SESSION['firm_id'])) {
+        $_SESSION['user']->firm_id = $_SESSION['firm_id'];
+        
+        // Aktif firmanın ana rolünü bulup kullanıcının rolüne atayalım
+        require_once "Model/RolesModel.php";
+        $rolesObj = new Roles();
+        $db = $rolesObj->getDb();
+        $sql = $db->prepare("SELECT id FROM userroles WHERE firm_id = ? AND main_role = 1 LIMIT 1");
+        $sql->execute([$_SESSION['firm_id']]);
+        $main_role = $sql->fetch(PDO::FETCH_OBJ);
+        if ($main_role) {
+            $_SESSION['user']->user_roles = $main_role->id;
+        } else {
+            // Eğer bu firmanın bir ana Admin rolü yoksa (geçmişte eklenmiş bir firmaysa), hemen oluşturuyoruz
+            require_once "Model/Auths.php";
+            require_once "Model/RoleAuthsModel.php";
+            
+            $AuthsObj = new Auths();
+            $RoleAuthsObj = new RoleAuthsModel();
+            
+            $roleData = [
+                "id" => 0,
+                "firm_id" => $_SESSION['firm_id'],
+                "roleName" => 'Admin',
+                "main_role" => 1
+            ];
+            $lastInsertRoleId = $rolesObj->saveWithAttr($roleData);
+            $decryptedRoleId = Security::decrypt($lastInsertRoleId);
+            
+            $authsList = $AuthsObj->all();
+            $authsIds = implode(',', array_column($authsList, 'id'));
+            
+            $roleAuthData = [
+                "role_id" => $decryptedRoleId,
+                "auth_ids" => $authsIds
+            ];
+            $RoleAuthsObj->saveWithAttr($roleAuthData);
+            
+            $_SESSION['user']->user_roles = $decryptedRoleId;
+        }
+    }
 }
 
 // if ($user->status == 0) {

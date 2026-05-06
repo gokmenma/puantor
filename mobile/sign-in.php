@@ -287,26 +287,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
             <?php endif; ?>
 
             <form method="POST" action="">
-                <div class="mb-3">
-                    <label class="form-label">Email Adresi</label>
-                    <div class="input-icon">
-                        <span class="input-icon-addon-left">
-                            <i class="ti ti-mail"></i>
-                        </span>
-                        <input type="email" name="email" class="form-control" placeholder="ad@sirket.com" required autocomplete="email">
-                    </div>
+                <div class="form-floating mb-3">
+                    <input type="email" name="email" class="form-control" id="floatingEmail" placeholder="ad@sirket.com" required autocomplete="email">
+                    <label for="floatingEmail">Email Adresi</label>
                 </div>
-                <div class="mb-4">
-                    <label class="form-label">Şifre</label>
-                    <div class="input-icon">
-                        <span class="input-icon-addon-left">
-                            <i class="ti ti-lock"></i>
-                        </span>
-                        <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
-                        <span class="input-icon-addon-right" id="togglePasswordBtn">
-                            <i class="ti ti-eye" id="togglePasswordIcon"></i>
-                        </span>
-                    </div>
+                <div class="form-floating mb-4 position-relative">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+                    <label for="password">Şifre</label>
+                    <span class="input-icon-addon-right" id="togglePasswordBtn" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 10;">
+                        <i class="ti ti-eye" id="togglePasswordIcon"></i>
+                    </span>
                 </div>
                 <button type="submit" name="login" class="btn btn-primary w-100 mb-3">Giriş Yap</button>
             </form>

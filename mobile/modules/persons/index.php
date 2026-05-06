@@ -46,7 +46,9 @@ $persons = $personModel->getPersonsByFirm($firm_id);
         $phone_clean = preg_replace('/[^0-9]/', '', $person->phone ?? '');
         $initials = mb_substr($person->full_name, 0, 2, 'UTF-8');
     ?>
-        <div class="mobile-card p-3 mb-2 person-card" data-name="<?php echo strtolower($person->full_name); ?>">
+    <div class="mobile-card p-3 mb-2 person-card cursor-pointer btn-active-scale" 
+         data-name="<?php echo strtolower($person->full_name); ?>"
+         onclick="window.location.href='person-edit?id=<?php echo $id_encrypted; ?>'">
           <div class="d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-3" style="width: calc(100% - 100px);">
               <!-- Profil İkonu -->
@@ -56,7 +58,7 @@ $persons = $personModel->getPersonsByFirm($firm_id);
               
               <!-- Personel Bilgileri -->
               <div class="text-truncate">
-                <a href="/index.php?p=persons/manage&id=<?php echo $id_encrypted; ?>" class="text-bold text-decoration-none text-reset d-block text-truncate" style="font-size: 0.95rem;">
+                <a href="person-edit?id=<?php echo $id_encrypted; ?>" class="text-semibold text-decoration-none text-reset d-block text-truncate" style="font-size: 0.95rem;">
                   <?php echo htmlspecialchars($person->full_name); ?>
                 </a>
                 <span class="text-muted text-xs d-block text-truncate">
@@ -71,10 +73,10 @@ $persons = $personModel->getPersonsByFirm($firm_id);
             <!-- Aksiyon Butonları -->
             <div class="d-flex gap-2">
               <?php if (!empty($phone_clean)): ?>
-                <a href="tel:<?php echo $phone_clean; ?>" class="btn-active-scale btn btn-icon btn-sm btn-outline-success border-0 bg-success-lt rounded-circle" style="width: 36px; height: 36px;">
+                <a href="tel:<?php echo $phone_clean; ?>" onclick="event.stopPropagation();" class="btn-active-scale btn btn-icon btn-sm btn-outline-success border-0 bg-success-lt rounded-circle" style="width: 36px; height: 36px;">
                   <i class="ti ti-phone"></i>
                 </a>
-                <a href="https://wa.me/<?php echo $phone_clean; ?>" target="_blank" class="btn-active-scale btn btn-icon btn-sm btn-outline-success border-0 bg-success-lt rounded-circle" style="width: 36px; height: 36px;">
+                <a href="https://wa.me/<?php echo $phone_clean; ?>" onclick="event.stopPropagation();" target="_blank" class="btn-active-scale btn btn-icon btn-sm btn-outline-success border-0 bg-success-lt rounded-circle" style="width: 36px; height: 36px;">
                   <i class="ti ti-brand-whatsapp"></i>
                 </a>
               <?php else: ?>

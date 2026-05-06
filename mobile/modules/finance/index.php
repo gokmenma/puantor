@@ -57,17 +57,7 @@ foreach ($active_cases as $c) {
     $casesCache[$c->id] = $c;
 }
 ?>
-<?php
-$host = $_SERVER['HTTP_HOST'];
-$is_subdomain = (strpos($host, 'mobile.') === 0);
-$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ? 'https' : 'http';
-if ($is_subdomain) {
-    $parent_host = str_replace('mobile.', '', $host);
-    $apiUrl = $protocol . '://' . $parent_host . '/api/financial/transaction.php';
-} else {
-    $apiUrl = '../api/financial/transaction.php';
-}
-?>
+<?php $apiUrl = '/api/financial/transaction.php'; ?>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
@@ -201,6 +191,54 @@ body[data-bs-theme="dark"] .select2-dropdown {
     background: rgba(214, 63, 63, 0.08) !important;
     color: #d63f3f !important;
 }
+
+/* Swipe to Delete Styles */
+.transaction-item-wrapper {
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    user-select: none;
+}
+body[data-bs-theme="dark"] .transaction-item-wrapper,
+body[data-bs-theme="dark"] .transaction-item-content {
+    background: #1e293b !important;
+}
+.transaction-item-actions {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    background: #d63f3f;
+    z-index: 1;
+}
+.transaction-item-content {
+    position: relative;
+    background: #fff;
+    z-index: 2;
+    transition: transform 0.2s ease-out;
+    width: 100%;
+    padding: 1rem;
+}
+.btn-swipe-delete {
+    color: white;
+    width: 70px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+.btn-swipe-delete i {
+    font-size: 1.2rem;
+    margin-bottom: 2px;
+}
 </style>
 
 <div class="container px-0">
@@ -267,30 +305,33 @@ body[data-bs-theme="dark"] .select2-dropdown {
         $case_name = $casesCache[$t->case_id]->case_name ?? 'Kasa';
         $item_date = date('d.m.Y', strtotime($t->date));
       ?>
-        <div class="list-group-item d-flex align-items-center justify-content-between py-3 transaction-item" data-type="<?php echo $is_income ? 'income' : 'expense'; ?>">
-          <div class="d-flex align-items-center gap-3">
-            <div class="avatar avatar-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: <?php echo $is_income ? 'rgba(47, 179, 68, 0.15)' : 'rgba(214, 63, 63, 0.15)'; ?>; color: <?php echo $is_income ? '#2fb344' : '#d63f3f'; ?>;">
-              <i class="ti <?php echo $is_income ? 'ti-arrow-up-right' : 'ti-arrow-down-left'; ?>" style="font-size: 1.25rem;"></i>
-            </div>
-            <div>
-              <div class="text-bold text-sm" style="color: var(--tblr-body-color, #1d273b);"><?php echo htmlspecialchars($t->account_name ?: ($sub_type_name ?: ($is_income ? 'Gelir' : 'Gider'))); ?></div>
-              <div class="text-muted text-xs d-flex align-items-center gap-1 mt-0.5">
-                <span><?php echo htmlspecialchars($case_name); ?></span>
-                <span class="text-muted-50">•</span>
-                <span><?php echo $item_date; ?></span>
-              </div>
-              <?php if (!empty($t->description)): ?>
-                <div class="text-muted text-xs font-italic mt-1" style="font-size: 0.7rem; opacity: 0.85;">"<?php echo htmlspecialchars($t->description); ?>"</div>
-              <?php endif; ?>
-            </div>
+        <div class="transaction-item-wrapper transaction-item" data-type="<?php echo $is_income ? 'income' : 'expense'; ?>">
+          <div class="transaction-item-actions">
+            <button class="btn-swipe-delete btn-delete-transaction" data-id="<?php echo Security::encrypt($t->id); ?>">
+              <i class="ti ti-trash"></i>
+              <span>Sil</span>
+            </button>
           </div>
-          <div class="d-flex align-items-center gap-2">
+          <div class="transaction-item-content d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+              <div class="avatar avatar-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: <?php echo $is_income ? 'rgba(47, 179, 68, 0.15)' : 'rgba(214, 63, 63, 0.15)'; ?>; color: <?php echo $is_income ? '#2fb344' : '#d63f3f'; ?>;">
+                <i class="ti <?php echo $is_income ? 'ti-arrow-up-right' : 'ti-arrow-down-left'; ?>" style="font-size: 1.25rem;"></i>
+              </div>
+              <div>
+                <div class="text-bold text-sm" style="color: var(--tblr-body-color, #1d273b);"><?php echo htmlspecialchars($t->account_name ?: ($sub_type_name ?: ($is_income ? 'Gelir' : 'Gider'))); ?></div>
+                <div class="text-muted text-xs d-flex align-items-center gap-1 mt-0.5">
+                  <span><?php echo htmlspecialchars($case_name); ?></span>
+                  <span class="text-muted-50">•</span>
+                  <span><?php echo $item_date; ?></span>
+                </div>
+                <?php if (!empty($t->description)): ?>
+                  <div class="text-muted text-xs font-italic mt-1" style="font-size: 0.7rem; opacity: 0.85;">"<?php echo htmlspecialchars($t->description); ?>"</div>
+                <?php endif; ?>
+              </div>
+            </div>
             <div class="text-bold text-sm <?php echo $is_income ? 'text-green' : 'text-red'; ?>" style="font-size: 0.9rem;">
               <?php echo ($is_income ? '+' : '-') . ' ₺' . Helper::formattedMoneyWithoutCurrency($t->amount); ?>
             </div>
-            <button class="btn btn-link text-muted p-1 btn-delete-transaction animate-target" data-id="<?php echo Security::encrypt($t->id); ?>" style="border: none; outline: none; background: transparent;">
-              <i class="ti ti-trash" style="font-size: 1rem; opacity: 0.6;"></i>
-            </button>
           </div>
         </div>
       <?php endforeach; ?>
@@ -336,35 +377,35 @@ body[data-bs-theme="dark"] .select2-dropdown {
           <div class="tab-content mb-4">
             <!-- Proje Tab -->
             <div class="tab-pane fade show active" id="tab-project" role="tabpanel">
-              <div class="form-group">
-                <label class="form-label text-xs font-weight-bold">Proje Seçimi</label>
-                <select name="gm_project_id" class="form-select form-select-lg select2-init" style="border-radius: 10px;">
+              <div class="form-floating">
+                <select name="gm_project_id" id="floatingProjectSelect" class="form-select select2-init">
                   <option value="0">Proje Yok</option>
                   <?php foreach ($active_projects as $p): ?>
                     <option value="<?php echo $p->id; ?>"><?php echo htmlspecialchars($p->project_name); ?></option>
                   <?php endforeach; ?>
                 </select>
+                <label for="floatingProjectSelect">Proje Seçimi</label>
               </div>
             </div>
 
             <!-- Personel Tab -->
             <div class="tab-pane fade" id="tab-person" role="tabpanel">
-              <div class="form-group">
-                <label class="form-label text-xs font-weight-bold">Personel Seçimi</label>
-                <select name="gm_person_name" class="form-select form-select-lg select2-init" style="border-radius: 10px;">
+              <div class="form-floating">
+                <select name="gm_person_name" id="floatingPersonSelect" class="form-select select2-init">
                   <option value="0">Personel Yok</option>
                   <?php foreach ($active_persons as $p): ?>
                     <option value="<?php echo Security::encrypt($p->id); ?>"><?php echo htmlspecialchars($p->full_name); ?></option>
                   <?php endforeach; ?>
                 </select>
+                <label for="floatingPersonSelect">Personel Seçimi</label>
               </div>
             </div>
 
             <!-- Firma Tab -->
             <div class="tab-pane fade" id="tab-company" role="tabpanel">
-              <div class="form-group">
-                <label class="form-label text-xs font-weight-bold">Firma Seçimi</label>
+              <div class="form-floating">
                 <?php echo $CompanyHelper->getCompanySelect(name: "gm_company"); ?>
+                <label for="gm_company">Firma Seçimi</label>
               </div>
             </div>
           </div>
@@ -393,9 +434,8 @@ body[data-bs-theme="dark"] .select2-dropdown {
           </div>
 
           <!-- Kasa Seçimi -->
-          <div class="mb-3">
-            <label class="form-label text-xs font-weight-bold">Kasa <span class="text-danger">*</span></label>
-            <select name="gm_case_id" id="gm_case_id" class="form-select form-select-lg select2-init" required style="border-radius: 10px;">
+          <div class="form-floating mb-3">
+            <select name="gm_case_id" id="gm_case_id" class="form-select select2-init" required>
               <option value="0">Kasa Seçiniz</option>
               <?php foreach ($active_cases as $c): ?>
                 <option value="<?php echo Security::encrypt($c->id); ?>" <?php echo $c->isDefault ? 'selected' : ''; ?>>
@@ -403,35 +443,37 @@ body[data-bs-theme="dark"] .select2-dropdown {
                 </option>
               <?php endforeach; ?>
             </select>
+            <label for="gm_case_id">Kasa <span class="text-danger">*</span></label>
           </div>
 
           <!-- Tutar -->
-          <div class="mb-3">
-            <label class="form-label text-xs font-weight-bold">Tutar (₺) <span class="text-danger">*</span></label>
-            <div class="input-group">
-              <span class="input-group-text bg-light text-bold" style="border-top-left-radius: 10px; border-bottom-left-radius: 10px;">₺</span>
-              <input type="text" name="amount" id="amount-input" class="form-control form-control-lg text-bold" placeholder="0,00" required autocomplete="off" style="border-top-right-radius: 10px; border-bottom-right-radius: 10px;">
-            </div>
+          <div class="form-floating mb-3">
+            <input type="text" name="amount" id="amount-input" class="form-control text-bold" placeholder="0,00" required autocomplete="off">
+            <label for="amount-input">Tutar (₺) <span class="text-danger">*</span></label>
           </div>
 
           <!-- Tarih & Tür -->
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label class="form-label text-xs font-weight-bold">İşlem Tarihi</label>
-              <input type="text" name="transaction_date" id="transaction_date" class="form-control" value="<?php echo date('d.m.Y'); ?>" style="border-radius: 10px;">
+              <div class="form-floating">
+                <input type="text" name="transaction_date" id="transaction_date" class="form-control" value="<?php echo date('d.m.Y'); ?>" placeholder="İşlem Tarihi">
+                <label for="transaction_date">İşlem Tarihi</label>
+              </div>
             </div>
             <div class="col-6">
-              <label class="form-label text-xs font-weight-bold">İşlem Türü <span class="text-danger">*</span></label>
-              <select name="gm_incexp_type" id="gm_incexp_type" class="form-select select2-init" required style="border-radius: 10px;">
-                <option value="">Yükleniyor...</option>
-              </select>
+              <div class="form-floating">
+                <select name="gm_incexp_type" id="gm_incexp_type" class="form-select select2-init" required>
+                  <option value="">Yükleniyor...</option>
+                </select>
+                <label for="gm_incexp_type">İşlem Türü <span class="text-danger">*</span></label>
+              </div>
             </div>
           </div>
 
           <!-- Açıklama -->
-          <div class="mb-3">
-            <label class="form-label text-xs font-weight-bold">Açıklama</label>
-            <textarea name="description" class="form-control" rows="2" placeholder="İşlem açıklaması yazınız..." style="border-radius: 10px; resize: none;"></textarea>
+          <div class="form-floating mb-3">
+            <textarea name="description" id="floatingDescription" class="form-control" placeholder="İşlem açıklaması yazınız..." style="height: 100px; resize: none;"></textarea>
+            <label for="floatingDescription">Açıklama</label>
           </div>
 
         </form>
@@ -463,11 +505,24 @@ $(document).ready(function() {
         });
     }
 
-    // 1. Initialize Flatpickr
+    // 1. Initialize Flatpickr with robust self-contained Turkish locale
     if (typeof flatpickr !== 'undefined') {
+        const flatpickrTr = {
+            firstDayOfWeek: 1,
+            weekdays: {
+                shorthand: ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"],
+                longhand: ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"]
+            },
+            months: {
+                shorthand: ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"],
+                longhand: ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
+            },
+            rangeSeparator: " - ",
+            amPM: ["ÖÖ", "ÖS"]
+        };
         flatpickr("#transaction_date", {
             dateFormat: "d.m.Y",
-            locale: "tr"
+            locale: flatpickrTr
         });
     }
 
@@ -496,7 +551,7 @@ $(document).ready(function() {
             type: type
         }, function(response) {
             try {
-                var res = JSON.parse(response);
+                var res = typeof response === 'object' ? response : JSON.parse(response);
                 var select = $('#gm_incexp_type');
                 select.empty();
                 select.append('<option value="">Tür Seçiniz</option>');
@@ -580,7 +635,7 @@ $(document).ready(function() {
             data: formData,
             success: function(response) {
                 try {
-                    var res = JSON.parse(response);
+                    var res = typeof response === 'object' ? response : JSON.parse(response);
                     if (res.status === 'success') {
                         showToast(res.message, false);
                         $('#add-transaction-modal').modal('hide');
@@ -612,7 +667,7 @@ $(document).ready(function() {
                 id: id
             }, function(response) {
                 try {
-                    var res = JSON.parse(response);
+                    var res = typeof response === 'object' ? response : JSON.parse(response);
                     if (res.status === 'success') {
                         showToast(res.message, false);
                         btn.closest('.transaction-item').fadeOut(300, function() {
@@ -637,12 +692,50 @@ $(document).ready(function() {
         }
     });
 
-    // 7. Amount input beautifier (Allow numbers and formatting commas)
-    $('#amount-input').on('input', function() {
-        var value = $(this).val();
-        // Allow only digits, comma and dot
-        value = value.replace(/[^0-9,.]/g, '');
-        $(this).val(value);
+    // 8. Swipe to delete functionality
+    let touchStartX = 0;
+    let touchMoveX = 0;
+    let currentSwipeItem = null;
+    const swipeThreshold = 70;
+
+    $(document).on('touchstart', '.transaction-item-content', function(e) {
+        touchStartX = e.originalEvent.touches[0].clientX;
+        currentSwipeItem = $(this);
+        
+        // Reset other open items
+        $('.transaction-item-content').not(currentSwipeItem).css('transform', 'translateX(0)');
+    });
+
+    $(document).on('touchmove', '.transaction-item-content', function(e) {
+        touchMoveX = e.originalEvent.touches[0].clientX;
+        let diff = touchStartX - touchMoveX;
+        
+        // Only swipe left
+        if (diff > 0) {
+            if (diff > swipeThreshold + 20) diff = swipeThreshold + 20; // Limit over-swipe
+            $(this).css('transition', 'none');
+            $(this).css('transform', 'translateX(-' + diff + 'px)');
+        } else {
+            $(this).css('transform', 'translateX(0)');
+        }
+    });
+
+    $(document).on('touchend', '.transaction-item-content', function(e) {
+        let diff = touchStartX - touchMoveX;
+        $(this).css('transition', 'transform 0.2s ease-out');
+        
+        if (diff > swipeThreshold / 2) {
+            $(this).css('transform', 'translateX(-' + swipeThreshold + 'px)');
+        } else {
+            $(this).css('transform', 'translateX(0)');
+        }
+    });
+
+    // Close swipe on click elsewhere
+    $(document).on('touchstart', function(e) {
+        if (!$(e.target).closest('.transaction-item-wrapper').length) {
+            $('.transaction-item-content').css('transform', 'translateX(0)');
+        }
     });
 });
 </script>

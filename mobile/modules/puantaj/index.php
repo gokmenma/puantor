@@ -48,7 +48,7 @@ foreach ($puantaj_types as $type) {
                     onclick="location.href='puantaj?date=<?php echo date('Y-m-d'); ?>'">Bugün</button>
             <button class="btn btn-sm btn-pill <?php echo $selected_date == date('Y-m-d', strtotime('-1 day')) ? 'btn-primary' : 'btn-outline-primary'; ?>"
                     onclick="location.href='puantaj?date=<?php echo date('Y-m-d', strtotime('-1 day')); ?>'">Dün</button>
-            <button class="btn btn-sm btn-pill btn-outline-secondary" onclick="setAll('G')">Tümünü Geldi Yap</button>
+            <button class="btn btn-sm btn-pill btn-outline-secondary" onclick="setAll('X')">Tümünü Geldi Yap</button>
         </div>
     </div>
 
@@ -60,40 +60,41 @@ foreach ($puantaj_types as $type) {
 
     <div class="list-group list-group-mobile mb-5" id="puantajListContainer">
         <?php foreach ($persons as $person): 
-            $current_status_id = $puantajModel->getPuantajTuruId($person->id, $selected_date);
+            $current_status_id = $puantajModel->getPuantajTuruId($person->id, str_replace('-', '', $selected_date));
             $current_type = null;
             if (!empty($current_status_id)) {
                 $current_type = $puantajModel->getPuantajTuruById($current_status_id);
             }
         ?>
-            <div class="list-group-item list-group-item-action py-3 person-row cursor-pointer d-flex align-items-center justify-content-between" 
+            <div class="list-group-item list-group-item-action py-2.5 person-row cursor-pointer d-flex align-items-center justify-content-between" 
                  data-person-id="<?php echo $person->id; ?>" 
                  data-person-key="<?php echo Security::encrypt($person->id); ?>"
                  data-person-name="<?php echo htmlspecialchars($person->full_name); ?>"
                  data-current-type-id="<?php echo $current_status_id; ?>"
                  data-name="<?php echo mb_strtolower($person->full_name, 'UTF-8'); ?>"
                  onclick="openPuantajModal(this)"
-                 style="gap: 16px;">
-                <div class="d-flex align-items-center gap-3" style="min-width: 0; flex: 1;">
-                    <div class="avatar avatar-md rounded-circle text-uppercase font-weight-bold" 
-                         style="background-color: #f1f5f9; color: #475569; width: 44px; height: 44px; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); flex-shrink: 0;">
-                        <?php echo mb_substr($person->full_name, 0, 1, 'UTF-8'); ?>
+                 style="gap: 12px; border-radius: 0;">
+                <div style="min-width: 0; flex: 1;">
+                    <div class="text-semibold text-dark mb-0" style="font-size: 0.92rem; letter-spacing: -0.2px; line-height: 1.2;">
+                        <?php echo htmlspecialchars($person->full_name); ?>
                     </div>
-                    <div style="min-width: 0;">
-                        <div class="text-bold text-dark mb-0.5" style="font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?php echo htmlspecialchars($person->full_name); ?></div>
-                        <div class="text-muted text-xs" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?php echo htmlspecialchars($person->job ?? 'Görevi Yok'); ?></div>
+                    <div class="text-muted" style="font-size: 0.72rem; opacity: 0.7; font-weight: 500; margin-top: 2px;">
+                        <?php echo htmlspecialchars($person->job ?? 'Görevi Belirtilmemiş'); ?>
                     </div>
                 </div>
+                
+                <!-- Sağ Taraf: Minimal Badge -->
                 <div style="flex-shrink: 0;">
                     <?php if ($current_type): ?>
-                        <span id="status-badge-<?php echo $person->id; ?>" class="badge px-2.5 py-1.5 text-xs font-weight-bold" 
-                              style="background-color: <?php echo htmlspecialchars($current_type->ArkaPlanRengi); ?>; color: <?php echo htmlspecialchars($current_type->FontRengi); ?>; border-radius: 8px; white-space: nowrap;">
-                            <?php echo htmlspecialchars($current_type->PuantajAdi); ?> (<?php echo htmlspecialchars($current_type->PuantajKod); ?>)
-                        </span>
+                        <div id="status-badge-<?php echo $person->id; ?>" class="avatar avatar-sm rounded-circle font-weight-bold" 
+                             style="background-color: <?php echo htmlspecialchars($current_type->ArkaPlanRengi); ?>; color: <?php echo htmlspecialchars($current_type->FontRengi); ?>; width: 36px; height: 36px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.06); text-transform: uppercase; border: 1.5px solid rgba(255,255,255,0.2);">
+                            <?php echo htmlspecialchars($current_type->PuantajKod); ?>
+                        </div>
                     <?php else: ?>
-                        <span id="status-badge-<?php echo $person->id; ?>" class="badge bg-secondary-lt text-secondary px-2.5 py-1.5 text-xs font-weight-bold" style="border-radius: 8px; white-space: nowrap;">
-                            Seçilmedi
-                        </span>
+                        <div id="status-badge-<?php echo $person->id; ?>" class="avatar avatar-sm rounded-circle" 
+                             style="background-color: #f8fafc; color: #94a3b8; width: 36px; height: 36px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; border: 1px dashed #e2e8f0; text-transform: uppercase;">
+                            -
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -258,6 +259,49 @@ foreach ($puantaj_types as $type) {
         border-color: var(--mobile-primary);
         box-shadow: 0 0 0 3px rgba(32, 107, 196, 0.15);
     }
+
+    /* PREMIUM DARK MODE TWEAKS */
+    body[data-bs-theme="dark"] .type-option-row {
+        border-color: var(--mobile-card-border-dark) !important;
+        background-color: #1e293b;
+    }
+    body[data-bs-theme="dark"] .type-option-row:hover {
+        background-color: #243049;
+    }
+    body[data-bs-theme="dark"] .type-option-row.selected {
+        background-color: rgba(32, 107, 196, 0.15);
+        border-color: var(--mobile-primary) !important;
+    }
+    body[data-bs-theme="dark"] .nav-pills .nav-link {
+        color: #94a3b8;
+    }
+    body[data-bs-theme="dark"] .nav-pills .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    body[data-bs-theme="dark"] .search-input {
+        background-color: #1e293b;
+        border-color: var(--mobile-card-border-dark);
+        color: #f4f6fa;
+    }
+    body[data-bs-theme="dark"] .search-input:focus {
+        background-color: #1e293b;
+        border-color: var(--mobile-primary);
+        box-shadow: 0 0 0 3px rgba(32, 107, 196, 0.25);
+    }
+    body[data-bs-theme="dark"] .text-dark {
+        color: #f4f6fa !important;
+    }
+    body[data-bs-theme="dark"] .avatar-md {
+        background-color: #1e293b !important;
+        color: #94a3b8 !important;
+    }
+    body[data-bs-theme="dark"] .modal-content {
+        background-color: #1a2234 !important;
+        color: #f4f6fa !important;
+    }
+    body[data-bs-theme="dark"] .border-end {
+        border-color: var(--mobile-card-border-dark) !important;
+    }
 </style>
 
 <script>
@@ -272,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function() {
             rows.forEach(row => {
                 const name = row.getAttribute('data-name');
                 if (name.includes(term)) {
-                    row.style.setProperty('display', 'block', 'important');
+                    row.style.setProperty('display', 'flex', 'important');
                 } else {
                     row.style.setProperty('display', 'none', 'important');
                 }
@@ -370,10 +414,10 @@ function saveSelectedPuantaj() {
     const badge = document.getElementById(`status-badge-${currentSelectedPersonId}`);
     const originalContent = badge.outerHTML;
     
-    badge.innerText = "Kaydediliyor...";
-    badge.className = "badge bg-secondary-lt text-secondary px-2.5 py-1.5 text-xs font-weight-bold";
-    badge.style.backgroundColor = '';
-    badge.style.color = '';
+    badge.innerText = "...";
+    badge.className = "avatar avatar-md rounded-circle font-weight-bold";
+    badge.style.backgroundColor = '#f1f5f9';
+    badge.style.color = '#94a3b8';
     
     bootstrap.Modal.getInstance(document.getElementById('puantajModal')).hide();
     
@@ -390,8 +434,8 @@ function saveSelectedPuantaj() {
             if (response.status === 'success') {
                 badge.style.backgroundColor = typeColor;
                 badge.style.color = typeTextColor;
-                badge.className = "badge px-2.5 py-1.5 text-xs font-weight-bold";
-                badge.innerText = `${typeLabel} (${typeCode})`;
+                badge.className = "avatar avatar-md rounded-circle font-weight-bold";
+                badge.innerText = typeCode;
                 
                 const row = document.querySelector(`.person-row[data-person-id="${currentSelectedPersonId}"]`);
                 row.setAttribute('data-current-type-id', currentSelectedTypeId);
@@ -410,52 +454,91 @@ function saveSelectedPuantaj() {
 }
 
 function setAll(typeCode) {
-    if (!confirm('Tüm personelleri "Geldi" yapmak istediğinize emin misiniz?')) return;
-    
     const typeOption = document.querySelector(`.type-option-row[data-type-code="${typeCode}"]`);
     if (!typeOption) {
-        alert('Geldi puantaj türü bulunamadı.');
+        Swal.fire({
+            icon: 'error',
+            title: 'Hata',
+            text: `"${typeCode}" puantaj türü sistemde bulunamadı.`
+        });
         return;
     }
     
-    const typeId = typeOption.getAttribute('data-type-id');
-    const typeLabel = typeOption.getAttribute('data-type-label');
-    const typeColor = typeOption.getAttribute('data-type-color');
-    const typeTextColor = typeOption.getAttribute('data-type-text-color');
-    const date = '<?php echo $selected_date; ?>';
-    
-    const rows = document.querySelectorAll('.person-row');
-    
-    rows.forEach(row => {
-        const personId = row.getAttribute('data-person-id');
-        const badge = document.getElementById(`status-badge-${personId}`);
-        badge.innerText = "Kaydediliyor...";
-        badge.className = "badge bg-secondary-lt text-secondary px-2.5 py-1.5 text-xs font-weight-bold";
-        badge.style.backgroundColor = '';
-        badge.style.color = '';
-        
-        $.ajax({
-            url: 'modules/puantaj/api/puantaj-save.php',
-            method: 'POST',
-            data: {
-                person_id: personId,
-                date: date,
-                type_id: typeId
-            },
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    badge.style.backgroundColor = typeColor;
-                    badge.style.color = typeTextColor;
-                    badge.className = "badge px-2.5 py-1.5 text-xs font-weight-bold";
-                    badge.innerText = `${typeLabel} (${typeCode})`;
-                    
-                    row.setAttribute('data-current-type-id', typeId);
-                    row.classList.add('saved');
-                    setTimeout(() => row.classList.remove('saved'), 1000);
+    Swal.fire({
+        title: 'Emin misiniz?',
+        text: `Tüm personelleri "${typeCode}" olarak işaretlemek üzeresiniz.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Evet, İşaretle',
+        cancelButtonText: 'Vazgeç'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const typeId = typeOption.getAttribute('data-type-id');
+            const typeColor = typeOption.getAttribute('data-type-color');
+            const typeTextColor = typeOption.getAttribute('data-type-text-color');
+            const date = '<?php echo $selected_date; ?>';
+            const rows = document.querySelectorAll('.person-row');
+            
+            Swal.fire({
+                title: 'İşleniyor...',
+                html: 'Puantajlar kaydediliyor, lütfen bekleyin. <br><b>0</b> / ' + rows.length,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
                 }
+            });
+
+            let completed = 0;
+            const total = rows.length;
+            
+            if (total === 0) {
+                Swal.fire('Uyarı', 'Listede personel bulunamadı.', 'warning');
+                return;
             }
-        });
+
+            rows.forEach(row => {
+                const personId = row.getAttribute('data-person-id');
+                const badge = document.getElementById(`status-badge-${personId}`);
+                
+                $.ajax({
+                    url: 'modules/puantaj/api/puantaj-save.php',
+                    method: 'POST',
+                    data: {
+                        person_id: personId,
+                        date: date,
+                        type_id: typeId
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            badge.style.backgroundColor = typeColor;
+                            badge.style.color = typeTextColor;
+                            badge.className = "avatar avatar-md rounded-circle font-weight-bold";
+                            badge.innerText = typeCode;
+                            
+                            row.setAttribute('data-current-type-id', typeId);
+                            row.classList.add('saved');
+                        }
+                    },
+                    complete: function() {
+                        completed++;
+                        Swal.getHtmlContainer().querySelector('b').innerText = completed;
+                        
+                        if (completed === total) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Başarılı',
+                                text: 'Puantaj başarıyla güncellendi',
+                                confirmButtonText: 'OK'
+                            });
+                            setTimeout(() => {
+                                document.querySelectorAll('.person-row.saved').forEach(r => r.classList.remove('saved'));
+                            }, 2000);
+                        }
+                    }
+                });
+            });
+        }
     });
 }
 </script>

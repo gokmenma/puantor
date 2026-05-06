@@ -21,16 +21,41 @@ foreach ($todos as $t) {
         $pending_todos_count++;
     }
 }
+$active_firm = null;
+foreach ($myFirms as $firm) {
+    if ($firm->id == $firm_id) {
+        $active_firm = $firm;
+        break;
+    }
+}
+$active_firm_name = $active_firm ? $active_firm->firm_name : 'Firma Seçilmedi';
 ?>
 
 <div class="container px-0">
   <!-- Karşılama Kartı -->
-  <div class="mb-4 d-flex align-items-center justify-content-between">
+  <div class="mb-3 d-flex align-items-center justify-content-between">
     <div>
       <h2 class="mb-1 text-semibold" style="letter-spacing: -0.5px;">Merhaba, <?php echo htmlspecialchars($user->name ?? 'Kullanıcı'); ?>! 👋</h2>
       <p class="text-muted text-xs mb-0">Bugün işler yolunda görünüyor.</p>
     </div>
   </div>
+
+  <!-- Aktif Firma / Çalışma Alanı Kartı -->
+  <div class="mobile-card mb-4 bg-primary-lt border-primary-subtle p-3 btn-active-scale" data-bs-toggle="modal" data-bs-target="#firmSelectionModal" style="cursor: pointer;">
+    <div class="d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-3">
+        <div class="avatar avatar-md rounded-circle bg-primary text-white">
+          <i class="ti ti-building" style="font-size: 1.35rem;"></i>
+        </div>
+        <div>
+          <span class="text-muted text-xs d-block text-semibold">Aktif Çalışma Alanı</span>
+          <h4 class="mb-0 text-bold text-primary" style="font-size: 0.95rem; line-height: 1.2;"><?php echo htmlspecialchars($active_firm_name); ?></h4>
+        </div>
+      </div>
+      <i class="ti ti-chevron-right text-primary" style="font-size: 1.25rem;"></i>
+    </div>
+  </div>
+
 
   <!-- KPI İstatistik Kartları (Grid) -->
   <div class="row g-3 mb-4">
@@ -44,7 +69,7 @@ foreach ($todos as $t) {
           </span>
         </div>
         <div>
-          <h3 class="mb-0 text-bold" style="font-size: 1.5rem;"><?php echo $active_persons; ?></h3>
+          <h3 class="mb-0 text-semibold" style="font-size: 1.5rem;"><?php echo $active_persons; ?></h3>
           <span class="text-muted text-xs">Aktif Çalışan</span>
         </div>
       </div>
@@ -60,7 +85,7 @@ foreach ($todos as $t) {
           </span>
         </div>
         <div>
-          <h3 class="mb-0 text-bold" style="font-size: 1.5rem;"><?php echo $active_projects; ?></h3>
+          <h3 class="mb-0 text-semibold" style="font-size: 1.5rem;"><?php echo $active_projects; ?></h3>
           <span class="text-muted text-xs">Toplam Proje</span>
         </div>
       </div>
@@ -68,29 +93,29 @@ foreach ($todos as $t) {
   </div>
 
   <!-- Hızlı İşlemler Gridi (Quick Actions) -->
-  <h4 class="mb-3 text-semibold" style="font-size: 0.95rem; letter-spacing: -0.3px;">Hızlı İşlemler</h4>
+  <h4 class="mb-3 text-semibold" style="font-size: 0.9rem; letter-spacing: -0.2px; opacity: 0.9;">Hızlı İşlemler</h4>
   <div class="quick-actions-grid">
     <a href="persons" class="quick-action-btn">
-      <i class="ti ti-user-plus" style="color: #206bc4;"></i>
+      <i class="ti ti-user-plus" style="color: #206bc4; font-size: 1.35rem;"></i>
       <span>Personel<br>Listesi</span>
     </a>
     <a href="puantaj-detail" class="quick-action-btn">
-      <i class="ti ti-calendar-event" style="color: #2fb344;"></i>
+      <i class="ti ti-calendar-event" style="color: #2fb344; font-size: 1.35rem;"></i>
       <span>Puantaj<br>Listesi</span>
     </a>
     <a href="todos" class="quick-action-btn">
-      <i class="ti ti-checklist" style="color: #f59e0b;"></i>
+      <i class="ti ti-checklist" style="color: #f59e0b; font-size: 1.35rem;"></i>
       <span>Yapılacaklar</span>
     </a>
     <a href="https://wa.me/905000000000" target="_blank" class="quick-action-btn">
-      <i class="ti ti-brand-whatsapp" style="color: #07d341;"></i>
+      <i class="ti ti-brand-whatsapp" style="color: #07d341; font-size: 1.35rem;"></i>
       <span>WhatsApp<br>Destek</span>
     </a>
   </div>
 
   <!-- Yapılacaklar Listesi (Recent Todos) -->
   <div class="d-flex align-items-center justify-content-between mb-3 mt-2">
-    <h4 class="mb-0 text-semibold" style="font-size: 0.95rem; letter-spacing: -0.3px;">Yapılacaklar (<?php echo $pending_todos_count; ?>)</h4>
+    <h4 class="mb-0 text-semibold" style="font-size: 0.9rem; letter-spacing: -0.2px; opacity: 0.9;">Yapılacaklar (<?php echo $pending_todos_count; ?>)</h4>
     <a href="todos" class="text-primary text-xs text-semibold text-decoration-none">Tümünü Gör</a>
   </div>
 
@@ -111,7 +136,7 @@ foreach ($todos as $t) {
         <div class="list-group-item d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-3">
             <input class="form-check-input m-0" type="checkbox" <?php echo $is_done ? 'checked' : ''; ?> disabled style="width: 18px; height: 18px; border-radius: 6px;">
-            <span class="text-sm <?php echo $is_done ? 'text-decoration-line-through text-muted' : 'text-bold'; ?>">
+            <span class="text-sm <?php echo $is_done ? 'text-decoration-line-through text-muted' : 'text-semibold'; ?>">
               <?php echo htmlspecialchars($todo->title ?? $todo->content ?? 'Görev'); ?>
             </span>
           </div>
@@ -120,7 +145,52 @@ foreach ($todos as $t) {
           </span>
         </div>
       <?php endforeach; ?>
-    </div>
   <?php endif; ?>
 
 </div>
+
+<!-- Firma Seçim Modali (Bottom Sheet tarzı) -->
+<div class="modal fade" id="firmSelectionModal" tabindex="-1" aria-labelledby="firmSelectionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+    <div class="modal-content border-0" style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title text-semibold" id="firmSelectionModalLabel" style="font-size: 1.1rem; letter-spacing: -0.3px;">Çalışma Alanı Seçin</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body pt-3">
+        <p class="text-muted text-xs mb-3">İşlemlerini yapmak istediğiniz firmayı aşağıdaki listeden seçebilirsiniz.</p>
+        
+        <div class="list-group list-group-mobile m-0">
+          <?php foreach ($myFirms as $firm): ?>
+            <?php $is_active = ($firm->id == $firm_id); ?>
+            <form action="" method="POST" class="m-0 select-firm-form">
+              <input type="hidden" name="action" value="select_firm">
+              <input type="hidden" name="firm_id" value="<?php echo $firm->id; ?>">
+              <button type="submit" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between text-start border-0 py-3 <?php echo $is_active ? 'bg-primary-lt' : ''; ?>" style="background: none; width: 100%;">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="avatar avatar-md rounded-circle <?php echo $is_active ? 'bg-primary text-white' : 'bg-secondary-lt text-secondary'; ?>">
+                    <i class="ti ti-building" style="font-size: 1.2rem;"></i>
+                  </div>
+                  <div>
+                    <span class="text-sm font-weight-medium <?php echo $is_active ? 'text-primary text-bold' : ''; ?>">
+                      <?php echo htmlspecialchars($firm->firm_name); ?>
+                    </span>
+                    <?php if ($is_active): ?>
+                      <span class="badge bg-primary text-white text-xs ms-2 rounded-pill" style="font-size: 0.6rem;">Aktif</span>
+                    <?php endif; ?>
+                  </div>
+                </div>
+                <?php if ($is_active): ?>
+                  <i class="ti ti-circle-check-filled text-primary" style="font-size: 1.35rem;"></i>
+                <?php else: ?>
+                  <i class="ti ti-chevron-right text-muted" style="font-size: 1.1rem;"></i>
+                <?php endif; ?>
+              </button>
+            </form>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
