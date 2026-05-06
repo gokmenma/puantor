@@ -46,7 +46,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_person'])) {
   </div>
 
   <?php if ($message): ?>
-    <div class="alert alert-info py-2 px-3 mb-3 text-sm" style="border-radius: 12px;"><?php echo $message; ?></div>
+    <div class="alert alert-<?php echo $status; ?> d-flex align-items-center mb-3" role="alert" style="border-radius: 14px;">
+      <div class="alert-icon me-3">
+        <?php if ($status == 'success'): ?>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon alert-icon"><path d="M5 12l5 5l10 -10"></path></svg>
+        <?php else: ?>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon alert-icon"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+        <?php endif; ?>
+      </div>
+      <div class="text-sm"><?php echo $message; ?></div>
+    </div>
   <?php endif; ?>
 
   <div class="mobile-card p-3">

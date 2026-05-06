@@ -131,19 +131,19 @@ $active_firm_name = $active_firm ? $active_firm->firm_name : 'Firma Seçilmedi';
       foreach ($todos as $todo): 
         if ($count >= 3) break;
         $count++;
-        $is_done = ($todo->state ?? 0) == 1;
+        $is_done = ($todo->status ?? 0) == 1;
       ?>
-        <div class="list-group-item d-flex align-items-center justify-content-between">
+        <a href="todos" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between py-2.5">
           <div class="d-flex align-items-center gap-3">
             <input class="form-check-input m-0" type="checkbox" <?php echo $is_done ? 'checked' : ''; ?> disabled style="width: 18px; height: 18px; border-radius: 6px;">
             <span class="text-sm <?php echo $is_done ? 'text-decoration-line-through text-muted' : 'text-semibold'; ?>">
-              <?php echo htmlspecialchars($todo->title ?? $todo->content ?? 'Görev'); ?>
+              <?php echo htmlspecialchars($todo->title ?? 'Görev'); ?>
             </span>
           </div>
           <span class="text-xs text-muted">
             <?php echo isset($todo->created_at) ? date('d.m', strtotime($todo->created_at)) : ''; ?>
           </span>
-        </div>
+        </a>
       <?php endforeach; ?>
   <?php endif; ?>
 

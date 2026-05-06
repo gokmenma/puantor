@@ -79,7 +79,7 @@ foreach ($puantaj_types as $type) {
                         <?php echo htmlspecialchars($person->full_name); ?>
                     </div>
                     <div class="text-muted" style="font-size: 0.72rem; opacity: 0.7; font-weight: 500; margin-top: 2px;">
-                        <?php echo htmlspecialchars($person->job ?? 'Görevi Belirtilmemiş'); ?>
+                        <?php echo !empty($person->job) ? htmlspecialchars($person->job) : 'Görev eklenmedi'; ?>
                     </div>
                 </div>
                 

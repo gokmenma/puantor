@@ -2,10 +2,6 @@
 // Puantor Mobil - Hızlı Puantaj Kaydetme API
 header('Content-Type: application/json');
 
-// Prevent PHP warnings, notices or errors from polluting the JSON output stream
-ini_set('display_errors', 0);
-error_reporting(0);
-
 try {
     define("ROOT", dirname(dirname(dirname(dirname(__DIR__)))));
     require_once ROOT . "/Database/require.php";
@@ -65,8 +61,11 @@ try {
         $project_id = intval($personModel->getPersonByField($person_id, 'project_id') ?? 0);
     }
 
+    $firm_id = $_SESSION['firm_id'] ?? 0;
+
     $data = [
         'id' => $id,
+        'company_id' => $firm_id,
         'person' => $person_id,
         'project_id' => $project_id,
         'puantaj_id' => $type_id,
@@ -74,10 +73,12 @@ try {
         'saat' => $saat,
         'tutar' => $tutar,
         "description" => "Mobil Hızlı Giriş",
+        "updated_at" => date('Y-m-d H:i:s')
     ];
 
     $puantajObj->saveWithAttr($data);
     echo json_encode(['status' => 'success', 'message' => 'Puantaj başarıyla kaydedildi']);
 } catch (Exception $e) {
+    http_response_code(500);
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }

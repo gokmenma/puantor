@@ -87,28 +87,7 @@ body[data-bs-theme="dark"] .form-selectgroup-input:checked + .form-selectgroup-l
     background: rgba(32, 107, 196, 0.15) !important;
 }
 .custom-toast {
-    position: fixed;
-    top: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-100px);
-    background: rgba(30, 41, 59, 0.95);
-    color: #fff;
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    z-index: 1060;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    backdrop-filter: blur(8px);
-    width: auto;
-    white-space: nowrap;
-}
-.custom-toast.show {
-    transform: translateX(-50%) translateY(0);
+    display: none;
 }
 .transaction-item {
     transition: background-color 0.2s;
@@ -488,11 +467,7 @@ body[data-bs-theme="dark"] .transaction-item-content {
   </div>
 </div>
 
-<!-- Toast Notification -->
-<div class="custom-toast" id="toast-notif">
-  <i class="ti ti-circle-check-filled text-success" id="toast-icon" style="font-size: 1.25rem;"></i>
-  <span id="toast-message">İşlem başarıyla tamamlandı.</span>
-</div>
+
 
 <script>
 $(document).ready(function() {
@@ -526,22 +501,20 @@ $(document).ready(function() {
         });
     }
 
-    // 2. Custom Toast Function
+    // 2. Custom Toast Function (Updated to SweetAlert2)
     function showToast(message, isError = false) {
-        var toast = $('#toast-notif');
-        var icon = $('#toast-icon');
-        $('#toast-message').text(message);
-        
-        if (isError) {
-            icon.removeClass('ti-circle-check-filled text-success').addClass('ti-circle-x-filled text-danger');
-        } else {
-            icon.removeClass('ti-circle-x-filled text-danger').addClass('ti-circle-check-filled text-success');
-        }
-        
-        toast.addClass('show');
-        setTimeout(function() {
-            toast.removeClass('show');
-        }, 3000);
+        Swal.fire({
+            title: isError ? 'Hata!' : 'Başarılı!',
+            text: message,
+            icon: isError ? 'error' : 'success',
+            showConfirmButton: false,
+            timer: 2000,
+            toast: true,
+            position: 'top',
+            timerProgressBar: true,
+            background: $('body').attr('data-bs-theme') === 'dark' ? '#1e293b' : '#ffffff',
+            color: $('body').attr('data-bs-theme') === 'dark' ? '#f4f6fa' : '#1d273b'
+        });
     }
 
     // 3. Load Sub-Types on load and on change
