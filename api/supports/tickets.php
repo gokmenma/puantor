@@ -2,10 +2,10 @@
 //define("ROOT", $_SERVER['DOCUMENT_ROOT']);
 use App\Helper\Security;
 
-require_once '../../Database/require.php';
-require_once '../../Model/SupportsModel.php';
-require_once '../../Model/SupportsMessagesModel.php';
-require_once "../../mail-settings.php";
+require_once __DIR__ . '/../../Database/require.php';
+require_once __DIR__ . '/../../Model/SupportsModel.php';
+require_once __DIR__ . '/../../Model/SupportsMessagesModel.php';
+require_once __DIR__ . "/../../mail-settings.php";
 
 $Supports = new SupportsModel();
 $SupportsMessages = new SupportsMessagesModel();
@@ -47,8 +47,10 @@ if (isset($_POST['action']) && $_POST['action'] == 'saveSupportTicket') {
 
 
         // Alıcılar
-        $mail->setFrom($_SESSION["user"]->email, 'Yeni Destek Talebi');
+        $mail->setFrom('sifre@puantor.com.tr', 'Yeni Destek Talebi');
+        $mail->addReplyTo($_SESSION["user"]->email, $_SESSION["user"]->full_name);
         $mail->addAddress('destek@puantor.com.tr');
+        $mail->addAddress('mbeyazilim@gmail.com');
         $mail->isHTML(true);
 
         $mail->Subject = 'Yeni Destek Talebi Bildirimi';
@@ -102,8 +104,10 @@ if (isset($_POST['action']) && $_POST['action'] == 'newTicketMessage') {
 
 
             // Alıcılar
-            $mail->setFrom($_SESSION["user"]->email, 'Yeni Destek mesajı');
+            $mail->setFrom('sifre@puantor.com.tr', 'Yeni Destek mesajı');
+            $mail->addReplyTo($_SESSION["user"]->email, $_SESSION["user"]->full_name);
             $mail->addAddress('destek@puantor.com.tr');
+            $mail->addAddress('mbeyazilim@gmail.com');
             $mail->isHTML(true);
 
             $mail->Subject = 'Destek Mesajı Bildirimi';

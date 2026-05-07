@@ -154,22 +154,38 @@ body[data-bs-theme="dark"] .todo-item-content {
 </style>
 
 <?php
-require_once ROOT . "/Model/TodoModel.php";
-require_once ROOT . "/Model/Projects.php";
+require_once ROOT . "/Model/GorevModel.php";
 require_once ROOT . "/App/Helper/security.php";
+require_once ROOT . "/App/Helper/date.php";
 
 use App\Helper\Security;
+use App\Helper\Date;
 
-$todoModel = new Todo();
-$projectModel = new Projects();
-$todos = $todoModel->getTodosByFirm();
-$projects = $projectModel->getProjectsByFirm($_SESSION['firm_id']);
+$gorevModel = new GorevModel();
+$firm_id = $_SESSION['firm_id'] ?? 0;
+
+// Get lists of tasks
+$listeler = $gorevModel->getListeler($firm_id);
+
+// Automatically initialize a default list folder if none exists
+if (empty($listeler)) {
+    $gorevModel->addListe([
+        'firma_id' => $firm_id,
+        'baslik' => 'Genel Görevler',
+        'renk' => '#4285f4',
+        'olusturan_id' => $_SESSION['user']->id ?? 0
+    ]);
+    $listeler = $gorevModel->getListeler($firm_id);
+}
+
+// Get all tasks across all list folders
+$todos = $gorevModel->getTumGorevler($firm_id);
 
 // Group todos
 $pending_todos = [];
 $completed_todos = [];
 foreach ($todos as $todo) {
-    if (($todo->status ?? '0') == '1') {
+    if (($todo->tamamlandi ?? 0) == 1) {
         $completed_todos[] = $todo;
     } else {
         $pending_todos[] = $todo;
@@ -237,17 +253,18 @@ foreach ($todos as $todo) {
       </div>
     <?php else: ?>
       <?php foreach ($todos as $todo): 
-        $is_done = ($todo->status ?? '0') == '1';
+        $is_done = ($todo->tamamlandi ?? 0) == 1;
         $todo_id_encrypted = Security::encrypt($todo->id);
       ?>
         <div class="todo-item-wrapper todo-item todo-row" 
              data-type="<?php echo $is_done ? 'completed' : 'pending'; ?>"
              data-id="<?php echo $todo_id_encrypted; ?>"
-             data-title="<?php echo htmlspecialchars($todo->title); ?>"
-             data-description="<?php echo htmlspecialchars($todo->description ?? ''); ?>"
-             data-project-id="<?php echo $todo->project_id; ?>"
-             data-due-date="<?php echo $todo->due_date; ?>"
-             data-status="<?php echo $todo->status; ?>">
+             data-title="<?php echo htmlspecialchars($todo->baslik); ?>"
+             data-description="<?php echo htmlspecialchars($todo->aciklama ?? ''); ?>"
+             data-liste-id="<?php echo Security::encrypt($todo->liste_id); ?>"
+             data-tarih="<?php echo $todo->tarih; ?>"
+             data-saat="<?php echo substr($todo->saat ?? '', 0, 5); ?>"
+             data-status="<?php echo $todo->tamamlandi; ?>">
           <div class="todo-item-actions">
             <button class="btn-swipe-delete" onclick="deleteTodo('<?php echo $todo_id_encrypted; ?>')">
               <i class="ti ti-trash"></i>
@@ -257,18 +274,18 @@ foreach ($todos as $todo) {
           <div class="todo-item-content d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-3">
               <!-- Custom status toggle avatar matches the finance circle style perfectly -->
-              <div onclick="toggleTodoStatusDirect('<?php echo $todo_id_encrypted; ?>', '<?php echo $todo->status; ?>')" class="avatar avatar-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: <?php echo $is_done ? 'rgba(47, 179, 68, 0.15)' : 'rgba(32, 107, 196, 0.15)'; ?>; color: <?php echo $is_done ? '#2fb344' : 'var(--mobile-primary)'; ?>; cursor: pointer;">
+              <div onclick="event.stopPropagation(); toggleTodoStatusDirect('<?php echo $todo_id_encrypted; ?>', '<?php echo $todo->tamamlandi; ?>')" class="avatar avatar-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: <?php echo $is_done ? 'rgba(47, 179, 68, 0.15)' : 'rgba(32, 107, 196, 0.15)'; ?>; color: <?php echo $is_done ? '#2fb344' : 'var(--mobile-primary)'; ?>; cursor: pointer;">
                 <i class="ti <?php echo $is_done ? 'ti-square-check' : 'ti-square'; ?>" style="font-size: 1.25rem;"></i>
               </div>
               <div onclick="editTodo('<?php echo $todo_id_encrypted; ?>')" style="cursor: pointer;">
-                <div class="text-bold text-sm <?php echo $is_done ? 'text-decoration-line-through text-muted' : ''; ?>" style="color: var(--tblr-body-color, #1d273b);"><?php echo htmlspecialchars($todo->title); ?></div>
+                <div class="text-bold text-sm <?php echo $is_done ? 'text-decoration-line-through text-muted' : ''; ?>" style="color: var(--tblr-body-color, #1d273b);"><?php echo htmlspecialchars($todo->baslik); ?></div>
                 <div class="text-muted text-xs d-flex align-items-center gap-1 mt-0.5">
-                  <?php if (!empty($todo->project_name)): ?>
-                    <span><?php echo htmlspecialchars($todo->project_name); ?></span>
+                  <?php if (!empty($todo->liste_adi)): ?>
+                    <span><?php echo htmlspecialchars($todo->liste_adi); ?></span>
                     <span class="text-muted-50">•</span>
                   <?php endif; ?>
-                  <span class="<?php echo !$is_done && !empty($todo->due_date) && strtotime($todo->due_date) < time() ? 'text-danger text-bold' : ''; ?>">
-                    <?php echo !empty($todo->due_date) && $todo->due_date !== '0000-00-00 00:00:00' ? date('d.m.Y H:i', strtotime($todo->due_date)) : 'Süresiz'; ?>
+                  <span class="<?php echo !$is_done && !empty($todo->tarih) && strtotime($todo->tarih) < time() ? 'text-danger text-bold' : ''; ?>">
+                    <?php echo !empty($todo->tarih) && $todo->tarih !== '0000-00-00' ? date('d.m.Y', strtotime($todo->tarih)) . ($todo->saat ? ' ' . substr($todo->saat, 0, 5) : '') : 'Süresiz'; ?>
                   </span>
                 </div>
               </div>
@@ -303,36 +320,45 @@ foreach ($todos as $todo) {
                     <div class="mb-3">
                         <label class="form-label text-xs text-muted text-uppercase tracking-wider font-weight-bold">Görev Bilgileri</label>
                         <div class="form-floating">
-                            <input type="text" class="form-control text-bold" id="todoTitle" name="title" required placeholder="Neler yapılacak?">
+                            <input type="text" class="form-control text-bold" id="todoTitle" name="baslik" required placeholder="Neler yapılacak?">
                             <label for="todoTitle">Görev Başlığı <span class="text-danger">*</span></label>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label text-xs text-muted text-uppercase tracking-wider font-weight-bold">Bağlantılı Proje</label>
+                        <label class="form-label text-xs text-muted text-uppercase tracking-wider font-weight-bold">Görev Listesi <span class="text-danger">*</span></label>
                         <div class="form-floating">
-                            <select class="form-select select2-init" id="todoProjectId" name="project_id">
-                                <option value="0">Proje Yok</option>
-                                <?php foreach ($projects as $project): ?>
-                                    <option value="<?php echo $project->id; ?>"><?php echo htmlspecialchars($project->project_name); ?></option>
+                            <select class="form-select select2-init" id="todoListeId" name="liste_id" required>
+                                <?php foreach ($listeler as $liste): ?>
+                                    <option value="<?php echo Security::encrypt($liste->id); ?>"><?php echo htmlspecialchars($liste->baslik); ?></option>
                                 <?php endforeach; ?>
                             </select>
-                            <label for="todoProjectId">İlgili Proje</label>
+                            <label for="todoListeId">İlgili Liste Klasörü</label>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label text-xs text-muted text-uppercase tracking-wider font-weight-bold">Zamanlama</label>
-                        <div class="form-floating">
-                            <input type="text" class="form-control" id="todoDueDate" name="due_date" placeholder="Tarih ve Saat Seçin">
-                            <label for="todoDueDate">Bitiş Tarihi & Saati</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="todoTarih" name="tarih" placeholder="Tarih Seçin">
+                                    <label for="todoTarih">Bitiş Tarihi</label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-floating">
+                                    <input type="time" class="form-control" id="todoSaat" name="saat" placeholder="Saat Seçin">
+                                    <label for="todoSaat">Saat</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="mb-0">
                         <label class="form-label text-xs text-muted text-uppercase tracking-wider font-weight-bold">Detaylar</label>
                         <div class="form-floating">
-                            <textarea class="form-control" id="todoDescription" name="description" placeholder="Detay ekleyebilirsiniz..." style="height: 100px; resize: none;"></textarea>
+                            <textarea class="form-control" id="todoDescription" name="aciklama" placeholder="Detay ekleyebilirsiniz..." style="height: 100px; resize: none;"></textarea>
                             <label for="todoDescription">Açıklama (Opsiyonel)</label>
                         </div>
                     </div>
@@ -398,10 +424,8 @@ $(document).ready(function() {
     }
 
     if (typeof flatpickr !== 'undefined') {
-        flatpickr("#todoDueDate", {
-            enableTime: true,
-            dateFormat: "Y-m-d H:i",
-            time_24hr: true,
+        flatpickr("#todoTarih", {
+            dateFormat: "Y-m-d",
             locale: "tr",
             disableMobile: "true"
         });
@@ -429,6 +453,7 @@ $(document).ready(function() {
 
     $(document).on('touchstart', '.todo-item-content', function(e) {
         touchStartX = e.originalEvent.touches[0].clientX;
+        touchMoveX = touchStartX;
         currentSwipeItem = $(this);
         
         // Reset other open items
@@ -475,29 +500,43 @@ function openTodoModal() {
     
     // Reset Select2
     if (jQuery.fn.select2) {
-        $('#todoProjectId').val('0').trigger('change');
+        $('#todoListeId').val($('#todoListeId option:first').val()).trigger('change');
     }
     
     new bootstrap.Modal($('#todoModal')).show();
 }
 
+function getGorevApiUrl() {
+    const pathname = window.location.pathname;
+    const mobileIndex = pathname.indexOf('/mobile');
+    const basePath = mobileIndex !== -1 ? pathname.substring(0, mobileIndex) : '';
+    return basePath + '/pages/gorevler/api.php';
+}
+
 function saveTodo(e) {
     e.preventDefault();
+    const todoId = $('#todoId').val();
+    const action = todoId ? 'update-gorev' : 'add-gorev';
+    
     const formData = new FormData(e.target);
+    formData.append('action', action);
+    if (todoId) {
+        formData.append('gorev_id', todoId);
+    }
     
     $.ajax({
-        url: 'modules/todos/api/todo-save.php',
+        url: getGorevApiUrl(),
         method: 'POST',
         data: formData,
         processData: false,
         contentType: false,
         dataType: 'json',
         success: function(response) {
-            if (response.status === 'success') {
+            if (response.success) {
                 bootstrap.Modal.getInstance($('#todoModal')[0]).hide();
                 location.reload();
             } else {
-                Swal.fire('Hata', response.message, 'error');
+                Swal.fire('Hata', response.message || 'Bir hata oluştu.', 'error');
             }
         }
     });
@@ -511,19 +550,20 @@ function editTodo(id) {
     $('#todoTitle').val(row.attr('data-title'));
     $('#todoDescription').val(row.attr('data-description'));
     
-    const projectId = row.attr('data-project-id') || '0';
-    $('#todoProjectId').val(projectId);
+    const listeId = row.attr('data-liste-id');
+    $('#todoListeId').val(listeId);
     if (jQuery.fn.select2) {
-        $('#todoProjectId').trigger('change');
+        $('#todoListeId').trigger('change');
     }
     
-    const dueDate = row.attr('data-due-date');
-    if (dueDate && dueDate !== '0000-00-00 00:00:00') {
-        if ($('#todoDueDate')[0]._flatpickr) {
-            $('#todoDueDate')[0]._flatpickr.setDate(dueDate);
-        }
+    const tarih = row.attr('data-tarih');
+    const saat = row.attr('data-saat');
+    if (tarih && tarih !== '0000-00-00') {
+        $('#todoTarih').val(tarih);
+        $('#todoSaat').val(saat ? saat.substring(0, 5) : '');
     } else {
-        $('#todoDueDate').val('');
+        $('#todoTarih').val('');
+        $('#todoSaat').val('');
     }
 
     $('#todoModalTitle').text('Görevi Düzenle');
@@ -531,15 +571,17 @@ function editTodo(id) {
 }
 
 function toggleTodoStatusDirect(id, currentStatus) {
-    const newStatus = currentStatus === '1' ? '0' : '1';
+    const action = (currentStatus == '1' || currentStatus == 1) ? 'geri-al' : 'tamamla';
     $.ajax({
-        url: 'modules/todos/api/todo-toggle.php',
+        url: getGorevApiUrl(),
         method: 'POST',
-        data: { id: id, status: newStatus },
+        data: { action: action, gorev_id: id },
         dataType: 'json',
         success: function(response) {
-            if (response.status === 'success') {
+            if (response.success) {
                 location.reload();
+            } else {
+                Swal.fire('Hata', response.message || 'İşlem gerçekleştirilemedi.', 'error');
             }
         }
     });
@@ -557,13 +599,15 @@ function deleteTodo(id) {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: 'modules/todos/api/todo-delete.php',
+                url: getGorevApiUrl(),
                 method: 'POST',
-                data: { id: id },
+                data: { action: 'delete-gorev', gorev_id: id },
                 dataType: 'json',
                 success: function(response) {
-                    if (response.status === 'success') {
+                    if (response.success) {
                         location.reload();
+                    } else {
+                        Swal.fire('Hata', response.message || 'İşlem gerçekleştirilemedi.', 'error');
                     }
                 }
             });

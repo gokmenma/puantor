@@ -118,7 +118,7 @@ $userId = $user->id ?? 0;
       <i class="ti ti-chevron-right text-muted" style="opacity: 0.5;"></i>
     </a>
 
-    <a href="/index.php?p=supports/tickets" class="list-group-item">
+    <a href="tickets" class="list-group-item">
       <div class="d-flex align-items-center gap-3">
         <div class="avatar avatar-sm rounded bg-indigo-lt">
           <i class="ti ti-headset text-indigo"></i>
