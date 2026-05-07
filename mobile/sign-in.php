@@ -327,7 +327,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             .login-container {
                 max-width: 100%;
-                height: 100vh;
+                min-height: 100dvh;
+                min-height: 100vh;
                 border-radius: 0;
                 border: none;
                 box-shadow: none;
@@ -335,7 +336,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                padding: 4rem 2rem 3rem;
+                padding: 2rem 1.75rem 1.5rem;
             }
             .login-middle-form {
                 flex-grow: 1;
