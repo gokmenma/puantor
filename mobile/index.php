@@ -190,9 +190,9 @@ include_once __DIR__ . "/inc/head.php";
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        $(document).ready(function() {
+        jQuery(document).ready(function($) {
             // Global Select2 initialization for mobile
-            if ($.fn.select2) {
+            if ($.fn && $.fn.select2) {
                 $('.select2-init').select2();
             }
         });

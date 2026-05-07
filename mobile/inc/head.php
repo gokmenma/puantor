@@ -7,7 +7,7 @@
   <title><?php echo $title ?? "Puantor Mobil | Puantaj Takip Uygulaması"; ?></title>
 
   <!-- PWA & Favicon -->
-  <link rel="icon" href="http://puantor.site/static/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
   <link rel="manifest" href="manifest.json">
 
   <!-- CSS CDN Libraries (Consistent with Desktop) -->
@@ -25,7 +25,8 @@
   <link rel="stylesheet" href="./css/mobile.css?v=<?php echo filemtime(__DIR__ . '/../css/mobile.css'); ?>" />
 
   <!-- jQuery (Required for shared logic/APIs) -->
-  <script src="http://puantor.site/dist/js/jquery.3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script>window.$ = window.jQuery;</script>
 
   <style>
     :root {

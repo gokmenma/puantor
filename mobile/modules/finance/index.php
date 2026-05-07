@@ -474,9 +474,9 @@ $(document).ready(function() {
     const apiUrl = '<?php echo $apiUrl; ?>';
 
     // Initialize Select2 with dropdownParent to fix modal focus issues
-    if ($.fn.select2) {
-        $('.select2-init, select.select2').select2({
-            dropdownParent: $('#add-transaction-modal')
+    if (jQuery.fn && jQuery.fn.select2) {
+        jQuery('.select2-init, select.select2').select2({
+            dropdownParent: jQuery('#add-transaction-modal')
         });
     }
 
@@ -519,7 +519,7 @@ $(document).ready(function() {
 
     // 3. Load Sub-Types on load and on change
     function fetchSubTypes(type) {
-        $.post(apiUrl, {
+        jQuery.post('/api/financial/transaction.php', {
             action: 'getSubTypes',
             type: type
         }, function(response) {
@@ -602,9 +602,9 @@ $(document).ready(function() {
         var formData = form.serializeArray();
         formData.push({ name: 'action', value: 'saveTransaction' });
 
-        $.ajax({
+        jQuery.ajax({
             type: 'POST',
-            url: apiUrl,
+            url: '/api/financial/transaction.php',
             data: formData,
             success: function(response) {
                 try {
@@ -635,7 +635,7 @@ $(document).ready(function() {
         var id = btn.data('id');
         
         if (confirm('Bu kasa hareketini silmek istediğinize emin misiniz?')) {
-            $.post(apiUrl + '?type=1', {
+            jQuery.post('/api/financial/transaction.php?type=1', {
                 action: 'deleteTransaction',
                 id: id
             }, function(response) {

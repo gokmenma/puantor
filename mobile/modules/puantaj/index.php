@@ -305,6 +305,11 @@ foreach ($puantaj_types as $type) {
 </style>
 
 <script>
+// jQuery'nin $ olarak tanımlandığından emin olalım
+if (typeof $ === 'undefined' && typeof jQuery !== 'undefined') {
+    var $ = jQuery;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Search Filtering
     const searchInput = document.getElementById('puantajSearchInput');
@@ -421,8 +426,8 @@ function saveSelectedPuantaj() {
     
     bootstrap.Modal.getInstance(document.getElementById('puantajModal')).hide();
     
-    $.ajax({
-        url: 'modules/puantaj/api/puantaj-save.php',
+    jQuery.ajax({
+        url: '/modules/puantaj/api/puantaj-save.php',
         method: 'POST',
         data: {
             person_id: currentSelectedPersonId,
@@ -500,8 +505,8 @@ function setAll(typeCode) {
                 const personId = row.getAttribute('data-person-id');
                 const badge = document.getElementById(`status-badge-${personId}`);
                 
-                $.ajax({
-                    url: 'modules/puantaj/api/puantaj-save.php',
+                jQuery.ajax({
+                    url: '/modules/puantaj/api/puantaj-save.php',
                     method: 'POST',
                     data: {
                         person_id: personId,
