@@ -203,9 +203,27 @@ include_once __DIR__ . "/inc/head.php";
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.4.0/dist/js/tabler.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         jQuery(document).ready(function($) {
+            // Global Flatpickr initialization for mobile
+            const initFlatpickr = () => {
+                if (typeof flatpickr !== 'undefined') {
+                    flatpickr('input[type="date"], .flatpickr', {
+                        dateFormat: "d.m.Y",
+                        locale: "tr",
+                        disableMobile: "true",
+                        animate: true,
+                        static: false,
+                        onOpen: function(selectedDates, dateStr, instance) {
+                            // Ensure floating label doesn't overlap on open
+                            $(instance.element).closest('.form-floating').addClass('has-value');
+                        }
+                    });
+                }
+            };
+
             // Global Select2 initialization for mobile
             if ($.fn && $.fn.select2) {
                 $('.select2-init').select2();
@@ -238,8 +256,14 @@ include_once __DIR__ . "/inc/head.php";
                 else if (distance < -60) this.classList.remove('swiped'); // Swipe Right
             }
 
+            initFlatpickr();
             initSwipe();
-            window.reInitSwipe = initSwipe;
+            
+            // Re-init on dynamic content changes
+            window.reInitMobileUI = () => {
+                initFlatpickr();
+                initSwipe();
+            };
         });
     </script>
 </body>

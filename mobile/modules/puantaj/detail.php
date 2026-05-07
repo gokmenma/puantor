@@ -13,7 +13,19 @@ $firm_id = $_SESSION['firm_id'] ?? 0;
 $year = $_GET['year'] ?? date('Y');
 $month = $_GET['month'] ?? date('m');
 
+$person_filter_id = 0;
+$id_encrypted = $_GET['person_id'] ?? '';
+if ($id_encrypted) {
+    $person_filter_id = \App\Helper\Security::decrypt($id_encrypted);
+}
+
 $persons = $personsModel->getPersonsByFirm($firm_id);
+if ($person_filter_id > 0) {
+    $persons = array_filter($persons, function($p) use ($person_filter_id) {
+        return $p->id == $person_filter_id;
+    });
+}
+
 $days_in_month = Date::daysInMonth($month, $year);
 
 $months = [
@@ -27,7 +39,7 @@ $months = [
   <div class="d-flex align-items-center justify-content-between mb-3">
     <h2 class="mb-0 text-semibold" style="letter-spacing: -0.5px;">Aylık Puantaj</h2>
     <div class="d-flex gap-2">
-      <select class="form-select form-select-sm border-0 bg-secondary-lt" onchange="location.href='puantaj-detail?month='+this.value">
+      <select class="form-select form-select-sm border-0 bg-secondary-lt" onchange="location.href='?route=puantaj-detail&month='+this.value+'<?php echo $id_encrypted ? '&person_id='.$id_encrypted : ''; ?>'">
         <?php foreach ($months as $m => $name): ?>
           <option value="<?php echo $m; ?>" <?php echo $m == $month ? 'selected' : ''; ?>><?php echo $name; ?></option>
         <?php endforeach; ?>

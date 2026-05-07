@@ -29,6 +29,18 @@ class Puantaj extends Model
         //$this->persons = new Persons();
     }
 
+    public function saveWithAttr($data)
+    {
+        $id = parent::saveWithAttr($data);
+        require_once __DIR__ . '/ActivityLogModel.php';
+        require_once __DIR__ . '/Persons.php';
+        $personObj = new Persons();
+        $person_name = $personObj->getPersonByField($data['person'], 'full_name');
+        $log_date = date('d.m.Y', strtotime($data['gun']));
+        ActivityLogModel::log('puantaj', 'add', "{$person_name} için {$log_date} tarihine puantaj eklendi.");
+        return $id;
+    }
+
 
     public function getPuantajSaati($id)
     {

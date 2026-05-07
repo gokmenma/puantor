@@ -145,7 +145,102 @@ $active_firm_name = $active_firm ? $active_firm->firm_name : 'Firma Seçilmedi';
           </span>
         </a>
       <?php endforeach; ?>
+    </div>
   <?php endif; ?>
+
+  <!-- Son Aktiviteler (Activity Feed) -->
+  <div class="d-flex align-items-center justify-content-between mb-3 mt-4">
+    <h4 class="mb-0 text-semibold" style="font-size: 0.95rem; letter-spacing: -0.3px;">Son Aktiviteler</h4>
+  </div>
+
+  <?php 
+  require_once ROOT . "/Model/ActivityLogModel.php";
+  $activityModel = new ActivityLogModel();
+  $activities = $activityModel->getRecentActivities(10);
+  
+  if (empty($activities)): 
+  ?>
+    <div class="mobile-card text-center py-4">
+      <i class="ti ti-history text-muted mb-2" style="font-size: 2rem;"></i>
+      <p class="text-muted text-xs mb-0">Henüz bir aktivite bulunmuyor.</p>
+    </div>
+  <?php else: ?>
+    <div class="activity-feed mb-5">
+      <?php foreach ($activities as $activity): 
+        $icon = 'ti-activity';
+        $color = 'primary';
+        switch($activity->activity_type) {
+            case 'puantaj': $icon = 'ti-calendar-event'; $color = 'green'; break;
+            case 'finance': $icon = 'ti-receipt-2'; $color = 'blue'; break;
+            case 'personnel': $icon = 'ti-user-plus'; $color = 'orange'; break;
+        }
+      ?>
+        <div class="activity-item d-flex gap-3 mb-3">
+          <div class="activity-icon-wrapper">
+            <div class="activity-icon bg-<?php echo $color; ?>-lt">
+              <i class="ti <?php echo $icon; ?>"></i>
+            </div>
+            <div class="activity-line"></div>
+          </div>
+          <div class="activity-content pb-2">
+            <div class="d-flex justify-content-between align-items-start mb-0.5">
+              <span class="text-xs text-bold text-dark"><?php echo htmlspecialchars($activity->user_name ?? 'Bilinmeyen Kullanıcı'); ?></span>
+              <span class="text-xs text-muted" style="font-size: 10px;"><?php echo date('H:i', strtotime($activity->created_at)); ?></span>
+            </div>
+            <p class="text-xs text-muted mb-1" style="line-height: 1.4;">
+              <?php echo htmlspecialchars($activity->description); ?>
+            </p>
+            <span class="text-xs text-muted" style="font-size: 10px; opacity: 0.8;">
+              <?php echo date('d.m.Y', strtotime($activity->created_at)); ?>
+            </span>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+
+  <style>
+    .activity-feed {
+        position: relative;
+        padding-left: 5px;
+    }
+    .activity-item {
+        position: relative;
+    }
+    .activity-icon-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+    }
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        z-index: 2;
+    }
+    .activity-line {
+        width: 2px;
+        flex-grow: 1;
+        background-color: #f1f5f9;
+        margin-top: 4px;
+        margin-bottom: -15px;
+    }
+    .activity-item:last-child .activity-line {
+        display: none;
+    }
+    .activity-content {
+        flex-grow: 1;
+        border-bottom: 1px solid #f8fafc;
+    }
+    .activity-item:last-child .activity-content {
+        border-bottom: none;
+    }
+  </style>
 
 </div>
 

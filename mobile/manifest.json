@@ -1,25 +1,25 @@
 {
-    "name": "Puantor Mobil",
+    "name": "Puantor Premium",
     "short_name": "Puantor",
+    "description": "Premium Puantaj ve Personel Takip Sistemi",
     "start_url": "index.php",
-    "display": "fullscreen",
+    "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#206bc4",
+    "orientation": "portrait",
+    "scope": "./",
     "icons": [
       {
-        "src": "http://puantor.site/static/png/icon-168x168.png",
-        "sizes": "168x168",
-        "type": "image/png"
-      },
-      {
-        "src": "http://puantor.site/static/png/icon-192x192.png",
+        "src": "../static/png/icon-192x192.png",
         "sizes": "192x192",
-        "type": "image/png"
+        "type": "image/png",
+        "purpose": "any maskable"
       },
       {
-        "src": "http://puantor.site/static/png/icon-512x512.png",
+        "src": "../static/png/icon-512x512.png",
         "sizes": "512x512",
-        "type": "image/png"
+        "type": "image/png",
+        "purpose": "any maskable"
       }
     ]
 }

@@ -28,11 +28,32 @@ $CompanyHelper = new CompanyHelper();
 // Get transactions for the firm
 $transactions = $ct->allTransactionByFirm($firm_id);
 
-// Get overall firm balance
-$balanceData = $ct->getFirmBalance($firm_id);
-$total_income = $balanceData->total_income ?? 0;
-$total_expense = $balanceData->total_expense ?? 0;
-$current_balance = $total_income - $total_expense;
+// Personel filtresi kontrolü
+$person_filter_id = 0;
+if (isset($_GET['person_id'])) {
+    $person_filter_id = Security::decrypt($_GET['person_id']);
+}
+
+if ($person_filter_id > 0) {
+    // Sadece bu personele ait işlemleri filtrele
+    $transactions = array_filter($transactions, function($t) use ($person_filter_id) {
+        return $t->person_id == $person_filter_id;
+    });
+
+    $total_income = 0;
+    $total_expense = 0;
+    foreach ($transactions as $t) {
+        if ($t->type_id == 1) $total_income += $t->amount;
+        else $total_expense += $t->amount;
+    }
+    $current_balance = $total_income - $total_expense;
+} else {
+    // Get overall firm balance
+    $balanceData = $ct->getFirmBalance($firm_id);
+    $total_income = $balanceData->total_income ?? 0;
+    $total_expense = $balanceData->total_expense ?? 0;
+    $current_balance = $total_income - $total_expense;
+}
 
 // Calculate today's net activity
 $today_net = 0;
@@ -480,24 +501,12 @@ $(document).ready(function() {
         });
     }
 
-    // 1. Initialize Flatpickr with robust self-contained Turkish locale
+    // 1. Initialize Flatpickr with global Turkish locale
     if (typeof flatpickr !== 'undefined') {
-        const flatpickrTr = {
-            firstDayOfWeek: 1,
-            weekdays: {
-                shorthand: ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"],
-                longhand: ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"]
-            },
-            months: {
-                shorthand: ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"],
-                longhand: ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
-            },
-            rangeSeparator: " - ",
-            amPM: ["ÖÖ", "ÖS"]
-        };
         flatpickr("#transaction_date", {
             dateFormat: "d.m.Y",
-            locale: flatpickrTr
+            locale: "tr",
+            disableMobile: "true"
         });
     }
 

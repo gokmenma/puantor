@@ -12,6 +12,26 @@ class Persons extends Model
         parent::__construct($this->table);
     }
 
+    public function saveWithAttr($data)
+    {
+        $id = parent::saveWithAttr($data);
+        require_once __DIR__ . '/ActivityLogModel.php';
+        $action = (isset($data['id']) && $data['id'] > 0) ? 'güncellendi' : 'eklendi';
+        $name = $data['full_name'] ?? 'Personel';
+        ActivityLogModel::log('personnel', (isset($data['id']) && $data['id'] > 0) ? 'update' : 'add', "Personel {$action}: {$name}");
+        return $id;
+    }
+
+    public function delete($id)
+    {
+        $person = $this->find($id);
+        if ($person) {
+            require_once __DIR__ . '/ActivityLogModel.php';
+            ActivityLogModel::log('personnel', 'delete', "Personel silindi: {$person->full_name}");
+        }
+        return parent::delete($id);
+    }
+
     public function getPersonsByFirm($firm_id)
     {
         $query = $this->db->prepare('SELECT * FROM persons WHERE firm_id = ? and deleted_at IS NULL');

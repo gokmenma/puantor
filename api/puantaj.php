@@ -8,6 +8,7 @@ require_once ROOT . '/Database/db.php';
 require_once ROOT . '/App/Helper/date.php';
 require_once ROOT . '/Model/SettingsModel.php';
 require_once ROOT . '/App/Helper/helper.php';
+require_once ROOT . '/Model/ActivityLogModel.php';
 
 
 use App\Helper\Date;
@@ -82,6 +83,7 @@ if ($_POST['action'] == 'savePuantaj') {
                     //if ($tutar > 0) {
                         // Veriyi modele gönder
                         $lastInsertId = $puantajObj->saveWithAttr($data);
+                        
                         $status = 'success';
                         if (count($error_wages) > 0) {
                             $message = 'Puantaj başarıyla güncellendi.<br>Fakat şu personellerin günlük ücreti 0 olduğu için hesaplama yapılamadı: <strong> <br>' . implode(', ', $error_wages) . '</strong>';

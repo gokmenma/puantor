@@ -16,6 +16,29 @@ class CaseTransactions extends Model
 
     protected $Settings;
 
+    public function saveWithAttr($data)
+    {
+        $id = parent::saveWithAttr($data);
+        require_once __DIR__ . '/ActivityLogModel.php';
+        $action = (isset($data['id']) && $data['id'] > 0) ? 'update' : 'add';
+        $type = ($data['type_id'] == 1) ? 'Gelir' : 'Gider';
+        $amount = Helper::formattedMoney($data['amount']);
+        ActivityLogModel::log('finance', $action, "Kasa hareketi ({$type}): {$amount} - {$data['description']}");
+        return $id;
+    }
+
+    public function delete($id)
+    {
+        $transaction = $this->find($id);
+        if ($transaction) {
+            $type = ($transaction->type_id == 1) ? 'Gelir' : 'Gider';
+            $amount = Helper::formattedMoney($transaction->amount);
+            require_once __DIR__ . '/ActivityLogModel.php';
+            ActivityLogModel::log('finance', 'delete', "Kasa hareketi silindi ({$type}): {$amount} - {$transaction->description}");
+        }
+        return parent::delete($id);
+    }
+
     public function __construct()
     {
         parent::__construct($this->table);

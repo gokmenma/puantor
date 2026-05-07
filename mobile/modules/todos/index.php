@@ -1,44 +1,42 @@
 <style>
 :root {
     --todo-card-bg: #ffffff;
-    --todo-card-border: var(--mobile-card-border-light);
+    --todo-card-border: rgba(0, 0, 0, 0.08);
     --todo-text-main: #1d273b;
     --todo-text-muted: #64748b;
 }
 
 body[data-bs-theme="dark"] {
     --todo-card-bg: #1e293b;
-    --todo-card-border: var(--mobile-card-border-dark);
+    --todo-card-border: rgba(255, 255, 255, 0.1);
     --todo-text-main: #f4f6fa;
     --todo-text-muted: #94a3b8;
 }
 
 .section-label {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
     color: var(--todo-text-muted);
     margin-bottom: 0.75rem;
-    opacity: 0.8;
+    opacity: 0.85;
 }
 
-.todo-group-card {
-    background: var(--todo-card-bg);
-    border-radius: 16px;
-    border: 1px solid var(--todo-card-border);
-    overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-}
-
-body[data-bs-theme="dark"] .todo-group-card {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
+/* Individual Card Style like the 2nd Image */
 .swipe-container {
     position: relative;
     overflow: hidden;
     background: transparent;
+    border-radius: 12px;
+    margin-bottom: 12px; /* Gap between cards */
+    border: 1px solid var(--todo-card-border);
+    transition: border-color 0.2s ease;
+}
+
+/* Active Border when Checked */
+.swipe-container:has(.form-selectgroup-input:checked) {
+    border-color: var(--mobile-primary);
 }
 
 .swipe-actions {
@@ -60,25 +58,45 @@ body[data-bs-theme="dark"] .todo-group-card {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     width: 100%;
     background: var(--todo-card-bg) !important;
-    border-bottom: 1px solid var(--todo-card-border);
 }
 
-.swipe-container:last-child .swipe-content {
-    border-bottom: none;
+/* Tabler Standard Selectgroup Overrides for Individual Cards */
+.form-selectgroup-item {
+    margin-bottom: 0 !important;
+}
+
+.form-selectgroup-label {
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0.85rem 1rem !important;
+    background: transparent !important;
+    display: flex !important;
+    align-items: center !important;
+    transition: all 0.2s ease !important;
+}
+
+.form-selectgroup-check {
+    width: 22px !important;
+    height: 22px !important;
+    margin-top: 0 !important;
 }
 
 .todo-title {
     color: var(--todo-text-main);
     font-weight: 600;
     font-size: 0.9rem;
+    line-height: 1.4;
 }
 
 .todo-meta {
     font-size: 0.75rem;
     color: var(--todo-text-muted);
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    margin-top: 1px;
+}
+
+.form-selectgroup-input:checked + .form-selectgroup-label .todo-title {
+    text-decoration: line-through;
+    opacity: 0.6;
 }
 
 .btn-swipe-action {
@@ -96,60 +114,20 @@ body[data-bs-theme="dark"] .todo-group-card {
     font-weight: 700;
 }
 
-/* Custom Checkbox aligned with Global Style */
-.custom-checkbox {
-    display: block;
-    position: relative;
-    cursor: pointer;
-    width: 22px;
-    height: 22px;
+.form-floating > .form-control,
+.form-floating > .form-select,
+.form-floating > textarea {
+    color: var(--todo-text-main) !important;
 }
 
-.custom-checkbox input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    height: 0;
-    width: 0;
+.form-floating > label {
+    color: #64748b !important;
+    font-size: 0.85rem;
 }
 
-.checkmark {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 22px;
-    width: 22px;
-    background-color: #f1f3f7;
-    border-radius: 6px;
-    border: 1.5px solid rgba(0,0,0,0.08);
-    transition: all 0.2s ease;
-}
-
-body[data-bs-theme="dark"] .checkmark {
-    background-color: rgba(255,255,255,0.05);
-    border-color: rgba(255,255,255,0.1);
-}
-
-.custom-checkbox input:checked ~ .checkmark {
-    background-color: var(--mobile-primary);
-    border-color: var(--mobile-primary);
-}
-
-.checkmark:after {
-    content: "";
-    position: absolute;
-    display: none;
-    left: 7.5px;
-    top: 3.5px;
-    width: 5px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 2.5px 2.5px 0;
-    transform: rotate(45deg);
-}
-
-.custom-checkbox input:checked ~ .checkmark:after {
-    display: block;
+.form-floating > .form-control:focus {
+    border-color: var(--mobile-primary) !important;
+    box-shadow: none !important;
 }
 </style>
 <?php
@@ -191,64 +169,60 @@ foreach ($todos as $todo) {
     <div class="mb-5 px-1">
         <div class="section-label">Devam Edenler (<?php echo count($pending_todos); ?>)</div>
         
-        <div class="todo-group-card">
-            <?php if (empty($pending_todos)): ?>
-                <div class="text-center py-5">
-                    <div class="avatar avatar-lg rounded-circle bg-success-lt mb-3 mx-auto">
-                        <i class="ti ti-confetti fs-1"></i>
-                    </div>
-                    <p class="text-muted text-sm mb-0">Harika! Bekleyen görev yok.</p>
+        <?php if (empty($pending_todos)): ?>
+            <div class="text-center py-5 bg-white rounded-3 border">
+                <div class="avatar avatar-lg rounded-circle bg-success-lt mb-3 mx-auto">
+                    <i class="ti ti-confetti fs-1"></i>
                 </div>
-            <?php else: ?>
-                <?php foreach ($pending_todos as $todo): 
-                    $todo_id_encrypted = Security::encrypt($todo->id);
-                ?>
-                    <div class="swipe-container" data-id="<?php echo $todo_id_encrypted; ?>">
-                        <div class="swipe-actions">
-                            <button class="btn-swipe-action" onclick="deleteTodo('<?php echo $todo_id_encrypted; ?>')">
-                                <i class="ti ti-trash"></i>
-                                <span>SİL</span>
-                            </button>
-                        </div>
-                        <div class="swipe-content p-3 todo-row" 
-                             data-id="<?php echo $todo_id_encrypted; ?>"
-                             data-title="<?php echo htmlspecialchars($todo->title); ?>"
-                             data-description="<?php echo htmlspecialchars($todo->description ?? ''); ?>"
-                             data-project-id="<?php echo $todo->project_id; ?>"
-                             data-due-date="<?php echo $todo->due_date; ?>"
-                             data-status="0">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="todo-check-wrapper">
-                                        <label class="custom-checkbox m-0">
-                                            <input type="checkbox" onchange="toggleTodoStatus('<?php echo $todo_id_encrypted; ?>', this)">
-                                            <span class="checkmark"></span>
-                                        </label>
-                                    </div>
-                                    <div class="todo-content" onclick="editTodo('<?php echo $todo_id_encrypted; ?>')">
-                                        <div class="todo-title"><?php echo htmlspecialchars($todo->title); ?></div>
-                                        <div class="todo-meta mt-0.5">
-                                            <?php if (!empty($todo->project_name)): ?>
-                                                <span><?php echo htmlspecialchars($todo->project_name); ?></span>
-                                            <?php endif; ?>
-                                            <?php if (!empty($todo->due_date) && $todo->due_date !== '0000-00-00 00:00:00'): ?>
-                                                <?php if (!empty($todo->project_name)): ?><span class="text-muted-50 mx-1">•</span><?php endif; ?>
-                                                <span class="<?php echo strtotime($todo->due_date) < time() ? 'text-danger' : ''; ?>">
-                                                    <?php echo date('d M H:i', strtotime($todo->due_date)); ?>
-                                                </span>
-                                            <?php endif; ?>
-                                        </div>
+                <p class="text-muted text-sm mb-0">Harika! Bekleyen görev yok.</p>
+            </div>
+        <?php else: ?>
+            <?php foreach ($pending_todos as $todo): 
+                $todo_id_encrypted = Security::encrypt($todo->id);
+            ?>
+                <div class="swipe-container" data-id="<?php echo $todo_id_encrypted; ?>">
+                    <div class="swipe-actions">
+                        <button class="btn-swipe-action" onclick="deleteTodo('<?php echo $todo_id_encrypted; ?>')">
+                            <i class="ti ti-trash"></i>
+                            <span>SİL</span>
+                        </button>
+                    </div>
+                    <div class="swipe-content todo-row" 
+                         data-id="<?php echo $todo_id_encrypted; ?>"
+                         data-title="<?php echo htmlspecialchars($todo->title); ?>"
+                         data-description="<?php echo htmlspecialchars($todo->description ?? ''); ?>"
+                         data-project-id="<?php echo $todo->project_id; ?>"
+                         data-due-date="<?php echo $todo->due_date; ?>"
+                         data-status="0">
+                        <label class="form-selectgroup-item w-100 m-0">
+                            <input type="checkbox" class="form-selectgroup-input" onchange="toggleTodoStatus('<?php echo $todo_id_encrypted; ?>', this)">
+                            <div class="form-selectgroup-label">
+                                <div class="me-3">
+                                    <span class="form-selectgroup-check"></span>
+                                </div>
+                                <div class="flex-fill" onclick="event.preventDefault(); event.stopPropagation(); editTodo('<?php echo $todo_id_encrypted; ?>')">
+                                    <div class="todo-title"><?php echo htmlspecialchars($todo->title); ?></div>
+                                    <div class="todo-meta">
+                                        <?php if (!empty($todo->project_name)): ?>
+                                            <span><?php echo htmlspecialchars($todo->project_name); ?></span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($todo->due_date) && $todo->due_date !== '0000-00-00 00:00:00'): ?>
+                                            <?php if (!empty($todo->project_name)): ?><span class="text-muted-50 mx-1">•</span><?php endif; ?>
+                                            <span class="<?php echo strtotime($todo->due_date) < time() ? 'text-danger' : ''; ?>">
+                                                <?php echo date('d M H:i', strtotime($todo->due_date)); ?>
+                                            </span>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
-                                <div class="text-muted" onclick="editTodo('<?php echo $todo_id_encrypted; ?>')">
+                                <div class="ms-auto text-muted" onclick="event.preventDefault(); event.stopPropagation(); editTodo('<?php echo $todo_id_encrypted; ?>')">
                                     <i class="ti ti-chevron-right opacity-30"></i>
                                 </div>
                             </div>
-                        </div>
+                        </label>
                     </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 
     <!-- Tamamlanan Görevler -->
@@ -260,39 +234,42 @@ foreach ($todos as $todo) {
         </div>
         
         <div class="collapse show" id="completedList">
-            <div class="todo-group-card">
-                <?php foreach ($completed_todos as $todo): 
-                    $todo_id_encrypted = Security::encrypt($todo->id);
-                ?>
-                    <div class="swipe-container" data-id="<?php echo $todo_id_encrypted; ?>">
-                        <div class="swipe-actions">
-                            <button class="btn-swipe-action" onclick="deleteTodo('<?php echo $todo_id_encrypted; ?>')">
-                                <i class="ti ti-trash"></i>
-                                <span>SİL</span>
-                            </button>
-                        </div>
-                        <div class="swipe-content p-3 todo-row completed" 
-                             data-id="<?php echo $todo_id_encrypted; ?>"
-                             data-title="<?php echo htmlspecialchars($todo->title); ?>"
-                             data-description="<?php echo htmlspecialchars($todo->description ?? ''); ?>"
-                             data-project-id="<?php echo $todo->project_id; ?>"
-                             data-due-date="<?php echo $todo->due_date; ?>"
-                             data-status="1">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="todo-check-wrapper">
-                                    <label class="custom-checkbox m-0">
-                                        <input type="checkbox" checked onchange="toggleTodoStatus('<?php echo $todo_id_encrypted; ?>', this)">
-                                        <span class="checkmark"></span>
-                                    </label>
+            <?php foreach ($completed_todos as $todo): 
+                $todo_id_encrypted = Security::encrypt($todo->id);
+            ?>
+                <div class="swipe-container" data-id="<?php echo $todo_id_encrypted; ?>">
+                    <div class="swipe-actions">
+                        <button class="btn-swipe-action" onclick="deleteTodo('<?php echo $todo_id_encrypted; ?>')">
+                            <i class="ti ti-trash"></i>
+                            <span>SİL</span>
+                        </button>
+                    </div>
+                    <div class="swipe-content todo-row" 
+                         data-id="<?php echo $todo_id_encrypted; ?>"
+                         data-title="<?php echo htmlspecialchars($todo->title); ?>"
+                         data-description="<?php echo htmlspecialchars($todo->description ?? ''); ?>"
+                         data-project-id="<?php echo $todo->project_id; ?>"
+                         data-due-date="<?php echo $todo->due_date; ?>"
+                         data-status="1">
+                        <label class="form-selectgroup-item w-100 m-0">
+                            <input type="checkbox" checked class="form-selectgroup-input" onchange="toggleTodoStatus('<?php echo $todo_id_encrypted; ?>', this)">
+                            <div class="form-selectgroup-label">
+                                <div class="me-3">
+                                    <span class="form-selectgroup-check"></span>
                                 </div>
-                                <div class="todo-content">
-                                    <div class="todo-title text-decoration-line-through opacity-50"><?php echo htmlspecialchars($todo->title); ?></div>
+                                <div class="flex-fill">
+                                    <div class="todo-title"><?php echo htmlspecialchars($todo->title); ?></div>
+                                    <div class="todo-meta">
+                                        <?php if (!empty($todo->project_name)): ?>
+                                            <span><?php echo htmlspecialchars($todo->project_name); ?></span>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </label>
                     </div>
-                <?php endforeach; ?>
-            </div>
+                </div>
+            <?php endforeach; ?>
         </div>
     </div>
     <?php endif; ?>
@@ -301,43 +278,57 @@ foreach ($todos as $todo) {
 <!-- Modal Structure -->
 <div class="modal modal-blur fade" id="todoModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content border-0 overflow-hidden" style="border-radius: 20px;">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title font-weight-bold" id="todoModalTitle">Yeni Görev Ekle</h5>
+        <div class="modal-content" style="border-radius: 20px; border: none;">
+            <div class="modal-header py-3" style="border-bottom: 1px solid rgba(0,0,0,0.06);">
+                <h5 class="modal-title text-semibold" id="todoModalTitle" style="font-size: 1.05rem;">Yeni Görev Ekle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
             </div>
             <form id="todoForm" onsubmit="saveTodo(event)">
-                <div class="modal-body py-4">
+                <div class="modal-body p-4">
                     <input type="hidden" id="todoId" name="id">
                     
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control border-0 bg-light-lt" id="todoTitle" name="title" required placeholder="Neler yapılacak?" style="border-radius: 12px;">
-                        <label for="todoTitle">Görev Başlığı</label>
+                    <div class="mb-3">
+                        <label class="form-label text-xs text-muted text-uppercase tracking-wider font-weight-bold">Görev Bilgileri</label>
+                        <div class="form-floating">
+                            <input type="text" class="form-control text-bold" id="todoTitle" name="title" required placeholder="Neler yapılacak?">
+                            <label for="todoTitle">Görev Başlığı <span class="text-danger">*</span></label>
+                        </div>
                     </div>
 
-                    <div class="form-floating mb-3">
-                        <select class="form-select border-0 bg-light-lt" id="todoProjectId" name="project_id" style="border-radius: 12px;">
-                            <option value="0">Proje Yok</option>
-                            <?php foreach ($projects as $project): ?>
-                                <option value="<?php echo $project->id; ?>"><?php echo htmlspecialchars($project->project_name); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <label for="todoProjectId">İlgili Proje</label>
+                    <div class="mb-3">
+                        <label class="form-label text-xs text-muted text-uppercase tracking-wider font-weight-bold">Bağlantılı Proje</label>
+                        <div class="form-floating">
+                            <select class="form-select select2-init" id="todoProjectId" name="project_id">
+                                <option value="0">Proje Yok</option>
+                                <?php foreach ($projects as $project): ?>
+                                    <option value="<?php echo $project->id; ?>"><?php echo htmlspecialchars($project->project_name); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <label for="todoProjectId">İlgili Proje</label>
+                        </div>
                     </div>
 
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control border-0 bg-light-lt" id="todoDueDate" name="due_date" placeholder="Tarih ve Saat Seçin" style="border-radius: 12px;">
-                        <label for="todoDueDate">Bitiş Tarihi & Saati</label>
+                    <div class="mb-3">
+                        <label class="form-label text-xs text-muted text-uppercase tracking-wider font-weight-bold">Zamanlama</label>
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="todoDueDate" name="due_date" placeholder="Tarih ve Saat Seçin">
+                            <label for="todoDueDate">Bitiş Tarihi & Saati</label>
+                        </div>
                     </div>
 
-                    <div class="form-floating mb-0">
-                        <textarea class="form-control border-0 bg-light-lt" id="todoDescription" name="description" placeholder="Detay ekleyebilirsiniz..." style="border-radius: 12px; height: 100px;"></textarea>
-                        <label for="todoDescription">Açıklama (Opsiyonel)</label>
+                    <div class="mb-0">
+                        <label class="form-label text-xs text-muted text-uppercase tracking-wider font-weight-bold">Detaylar</label>
+                        <div class="form-floating">
+                            <textarea class="form-control" id="todoDescription" name="description" placeholder="Detay ekleyebilirsiniz..." style="height: 100px; resize: none;"></textarea>
+                            <label for="todoDescription">Açıklama (Opsiyonel)</label>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Vazgeç</button>
-                    <button type="submit" class="btn btn-primary px-4 shadow-sm" style="border-radius: 12px; font-weight: 600;">Görevi Kaydet</button>
+                <div class="modal-footer py-2.5 bg-light d-flex justify-content-between" style="border-top: 1px solid rgba(0,0,0,0.06); border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+                    <button type="button" class="btn btn-link text-muted text-xs text-semibold text-decoration-none" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-primary px-4 py-2 text-xs text-semibold" style="border-radius: 10px; background: var(--mobile-primary); border: none;">
+                        <i class="ti ti-plus me-1"></i> Kaydet
+                    </button>
                 </div>
             </form>
         </div>
@@ -386,19 +377,34 @@ foreach ($todos as $todo) {
 
 <script>
 $(document).ready(function() {
-    flatpickr("#todoDueDate", {
-        enableTime: true,
-        dateFormat: "Y-m-d H:i",
-        time_24hr: true,
-        locale: "tr",
-        disableMobile: "true"
-    });
+    // Initialize Select2 with dropdownParent to fix modal focus issues
+    if (jQuery.fn && jQuery.fn.select2) {
+        jQuery('.select2-init, select.select2').select2({
+            dropdownParent: jQuery('#todoModal')
+        });
+    }
+
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr("#todoDueDate", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+            locale: "tr",
+            disableMobile: "true"
+        });
+    }
 });
 
 function openTodoModal() {
     $('#todoForm')[0].reset();
     $('#todoId').val('');
     $('#todoModalTitle').text('Yeni Görev Ekle');
+    
+    // Reset Select2
+    if (jQuery.fn.select2) {
+        $('#todoProjectId').val('0').trigger('change');
+    }
+    
     new bootstrap.Modal($('#todoModal')).show();
 }
 
@@ -431,11 +437,18 @@ function editTodo(id) {
     $('#todoId').val(id);
     $('#todoTitle').val(row.attr('data-title'));
     $('#todoDescription').val(row.attr('data-description'));
-    $('#todoProjectId').val(row.attr('data-project-id') || '0');
+    
+    const projectId = row.attr('data-project-id') || '0';
+    $('#todoProjectId').val(projectId);
+    if (jQuery.fn.select2) {
+        $('#todoProjectId').trigger('change');
+    }
     
     const dueDate = row.attr('data-due-date');
     if (dueDate && dueDate !== '0000-00-00 00:00:00') {
-        $('#todoDueDate')[0]._flatpickr.setDate(dueDate);
+        if ($('#todoDueDate')[0]._flatpickr) {
+            $('#todoDueDate')[0]._flatpickr.setDate(dueDate);
+        }
     } else {
         $('#todoDueDate').val('');
     }
@@ -483,49 +496,67 @@ function deleteTodo(id) {
         }
     });
 }
-    // Improved Swipe Logic (Finance Module Style)
+    // Improved Swipe Logic (Refined for Tap vs Swipe)
     let touchStartX = 0;
+    let touchStartY = 0;
     let touchMoveX = 0;
+    let isSwiping = false;
     let currentSwipeItem = null;
     const swipeThreshold = 75;
 
     $(document).on('touchstart', '.swipe-content', function(e) {
         touchStartX = e.originalEvent.touches[0].clientX;
+        touchStartY = e.originalEvent.touches[0].clientY;
         currentSwipeItem = $(this);
+        isSwiping = false;
         
         // Reset other open items
-        $('.swipe-content').not(currentSwipeItem).css('transform', 'translateX(0)');
+        $('.swipe-content').not(currentSwipeItem).css('transition', 'transform 0.3s ease').css('transform', 'translateX(0)');
     });
 
     $(document).on('touchmove', '.swipe-content', function(e) {
         touchMoveX = e.originalEvent.touches[0].clientX;
-        let diff = touchStartX - touchMoveX;
+        let touchMoveY = e.originalEvent.touches[0].clientY;
         
-        // Only swipe left
-        if (diff > 0) {
-            if (diff > swipeThreshold + 20) diff = swipeThreshold + 20; // Limit over-swipe
+        let diffX = touchStartX - touchMoveX;
+        let diffY = Math.abs(touchStartY - touchMoveY);
+
+        // If user is scrolling vertically, don't swipe
+        if (diffY > 10 && !isSwiping) return;
+
+        // Start swiping if horizontal movement is significant
+        if (diffX > 10) {
+            isSwiping = true;
+            if (diffX > swipeThreshold + 20) diffX = swipeThreshold + 20; 
             $(this).css('transition', 'none');
-            $(this).css('transform', 'translateX(-' + diff + 'px)');
-        } else {
-            $(this).css('transform', 'translateX(0)');
+            $(this).css('transform', 'translateX(-' + diffX + 'px)');
+            
+            // Prevent scrolling when swiping
+            if (e.cancelable) e.preventDefault();
+        } else if (diffX < 0 && isSwiping) {
+             $(this).css('transform', 'translateX(0)');
+             isSwiping = false;
         }
     });
 
     $(document).on('touchend', '.swipe-content', function(e) {
-        let diff = touchStartX - touchMoveX;
-        $(this).css('transition', 'transform 0.2s ease-out');
+        if (!isSwiping) return;
         
-        if (diff > swipeThreshold / 2) {
+        let diffX = touchStartX - touchMoveX;
+        $(this).css('transition', 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)');
+        
+        if (diffX > swipeThreshold / 2) {
             $(this).css('transform', 'translateX(-' + swipeThreshold + 'px)');
         } else {
             $(this).css('transform', 'translateX(0)');
         }
+        isSwiping = false;
     });
 
     // Close swipe on click elsewhere
-    $(document).on('touchstart', function(e) {
+    $(document).on('mousedown touchstart', function(e) {
         if (!$(e.target).closest('.swipe-container').length) {
-            $('.swipe-content').css('transform', 'translateX(0)');
+            $('.swipe-content').css('transition', 'transform 0.3s ease').css('transform', 'translateX(0)');
         }
     });
 </script>

@@ -618,3 +618,83 @@ body[data-bs-theme="dark"] .swal2-styled.swal2-cancel {
 .swipe-container.swiped .btn-swipe-action {
     opacity: 1;
 }
+
+/* Premium Flatpickr Theme - Desktop Consistent */
+.flatpickr-calendar {
+    background: #ffffff !important;
+    border: 1px solid var(--mobile-card-border-light) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08) !important;
+    font-family: inherit !important;
+    width: 300px !important;
+    padding: 8px !important;
+    z-index: 10000 !important; /* Above all modals */
+    margin-top: 5px !important;
+}
+
+body[data-bs-theme="dark"] .flatpickr-calendar {
+    background: #1e293b !important;
+    border-color: var(--mobile-card-border-dark) !important;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3) !important;
+}
+
+.flatpickr-day {
+    border-radius: 10px !important;
+    transition: all 0.2s ease !important;
+}
+
+.flatpickr-day.selected, 
+.flatpickr-day.startRange, 
+.flatpickr-day.endRange {
+    background: var(--mobile-primary) !important;
+    border-color: var(--mobile-primary) !important;
+    color: #fff !important;
+}
+
+.flatpickr-day.today {
+    border-color: var(--mobile-primary) !important;
+    color: var(--mobile-primary) !important;
+}
+
+.flatpickr-day:hover {
+    background: rgba(32, 107, 196, 0.08) !important;
+}
+
+body[data-bs-theme="dark"] .flatpickr-day {
+    color: #f4f6fa !important;
+}
+
+body[data-bs-theme="dark"] .flatpickr-day.flatpickr-disabled {
+    color: rgba(255,255,255,0.1) !important;
+}
+
+.flatpickr-months .flatpickr-month {
+    color: inherit !important;
+    height: 45px !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    font-weight: 700 !important;
+}
+
+span.flatpickr-weekday {
+    font-weight: 600 !important;
+    color: #94a3b8 !important;
+    font-size: 0.75rem !important;
+}
+
+.flatpickr-calendar.arrowTop:before,
+.flatpickr-calendar.arrowTop:after {
+    border-bottom-color: var(--mobile-card-border-light) !important;
+}
+
+body[data-bs-theme="dark"] .flatpickr-calendar.arrowTop:after {
+    border-bottom-color: #1e293b !important;
+}
+
+/* Ensure flatpickr input doesn't show native picker */
+input.flatpickr-input[type="date"]::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+}
+

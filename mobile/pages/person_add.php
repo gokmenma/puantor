@@ -2,6 +2,7 @@
 // Puantor Mobil - Yeni Personel Ekleme
 require_once ROOT . "/Model/Persons.php";
 require_once ROOT . "/Model/Projects.php";
+require_once ROOT . "/Model/ActivityLogModel.php";
 require_once ROOT . "/App/Helper/security.php";
 
 use App\Helper\Security;

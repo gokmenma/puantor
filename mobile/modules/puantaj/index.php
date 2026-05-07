@@ -38,21 +38,21 @@ $is_today_or_future = ($selected_date >= $today);
         <div class="d-flex align-items-center justify-content-between mb-2">
             <h2 class="mb-0 text-semibold" style="letter-spacing: -0.5px;">Hızlı Puantaj</h2>
                 <div class="d-flex align-items-center gap-2">
-                    <a href="puantaj?date=<?php echo $prev_date; ?>" class="btn btn-icon bg-secondary-lt border-0 text-secondary rounded-3" style="width: 34px; height: 34px;" title="Önceki Gün">
+                    <a href="puantaj?date=<?php echo $prev_date; ?>" class="btn btn-icon bg-secondary-lt border-0 text-secondary rounded-3 p-0" style="width: 34px; height: 34px; min-height: auto !important; display: flex; align-items: center; justify-content: center;" title="Önceki Gün">
                         <i class="ti ti-chevron-left fs-3"></i>
                     </a>
                     <div class="position-relative d-inline-block">
                         <input type="text" id="datePicker" class="form-control form-control-sm border-0 bg-secondary-lt text-bold text-center" 
                                value="<?php echo date('d.m.Y', strtotime($selected_date)); ?>" 
-                               style="width: 100px; height: 34px; border-radius: 10px; cursor: pointer; padding-right: 1.6rem; font-size: 0.82rem; color: #1d273b !important;">
+                               style="width: 100px; height: 34px; border-radius: 10px; cursor: pointer; padding-right: 1.6rem; font-size: 0.82rem; color: #1d273b !important; min-height: auto !important;">
                         <i class="ti ti-calendar position-absolute text-muted" style="right: 6px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 0.85rem;"></i>
                     </div>
                     <?php if (!$is_today_or_future): ?>
-                        <a href="puantaj?date=<?php echo $next_date; ?>" class="btn btn-icon bg-secondary-lt border-0 text-secondary rounded-3" style="width: 34px; height: 34px;" title="Sonraki Gün">
+                        <a href="puantaj?date=<?php echo $next_date; ?>" class="btn btn-icon bg-secondary-lt border-0 text-secondary rounded-3 p-0" style="width: 34px; height: 34px; min-height: auto !important; display: flex; align-items: center; justify-content: center;" title="Sonraki Gün">
                             <i class="ti ti-chevron-right fs-3"></i>
                         </a>
                     <?php else: ?>
-                        <button class="btn btn-icon bg-secondary-lt border-0 text-secondary rounded-3 disabled" style="width: 34px; height: 34px; opacity: 0.3;" disabled>
+                        <button class="btn btn-icon bg-secondary-lt border-0 text-secondary rounded-3 p-0 disabled" style="width: 34px; height: 34px; min-height: auto !important; opacity: 0.3; display: flex; align-items: center; justify-content: center;" disabled>
                             <i class="ti ti-chevron-right fs-3"></i>
                         </button>
                     <?php endif; ?>
@@ -75,6 +75,13 @@ $is_today_or_future = ($selected_date >= $today);
 
     <div class="list-group list-group-mobile mb-5" id="puantajListContainer">
         <?php foreach ($persons as $person): 
+            // İş başlama ve ayrılış tarihlerine göre filtreleme
+            $start_dt = !empty($person->job_start_date) ? date('Y-m-d', strtotime($person->job_start_date)) : null;
+            $end_dt = !empty($person->job_end_date) ? date('Y-m-d', strtotime($person->job_end_date)) : null;
+            
+            if ($start_dt && $selected_date < $start_dt) continue;
+            if ($end_dt && $selected_date > $end_dt) continue;
+
             $current_status_id = $puantajModel->getPuantajTuruId($person->id, str_replace('-', '', $selected_date));
             $current_type = null;
             if (!empty($current_status_id)) {
@@ -349,6 +356,8 @@ document.addEventListener('DOMContentLoaded', function() {
         dateFormat: "d.m.Y",
         defaultDate: "<?php echo date('d.m.Y', strtotime($selected_date)); ?>",
         maxDate: "today",
+        locale: "tr",
+        disableMobile: "true",
         onChange: function(selectedDates, dateStr, instance) {
             const dateParts = dateStr.split(".");
             const ymdDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
