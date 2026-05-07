@@ -71,17 +71,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_person'])) {
     $data = [
         'id' => $id,
         'firm_id' => $firm_id,
-        'full_name' => $_POST['full_name'],
+        'full_name' => $_POST['full_name'] ?? '',
         'kimlik_no' => Security::encrypt($tc_no),
-        'phone' => $_POST['phone'],
-        'email' => $_POST['email'],
-        'daily_wages' => $_POST['daily_wage'],
-        'wage_type' => $_POST['wage_type'],
-        'job_start_date' => $_POST['job_start_date'],
-        'job_end_date' => $_POST['job_end_date'],
-        'job' => $_POST['job'],
-        'project_id' => $_POST['project_id'],
-        'address' => $_POST['address']
+        'phone' => $_POST['phone'] ?? '',
+        'email' => $_POST['email'] ?? '',
+        'daily_wages' => $_POST['daily_wage'] ?? 0.00,
+        'wage_type' => $_POST['wage_type'] ?? ($person->wage_type ?? 2),
+        'job_start_date' => $_POST['job_start_date'] ?? null,
+        'job_end_date' => $_POST['job_end_date'] ?? null,
+        'job' => $_POST['job'] ?? '',
+        'project_id' => $_POST['project_id'] ?? 0,
+        'address' => $_POST['address'] ?? ''
     ];
 
     // Şifre değişikliği varsa ekle
