@@ -4,6 +4,9 @@ require_once ROOT . "/Model/Persons.php";
 require_once ROOT . "/Model/Projects.php";
 require_once ROOT . "/Model/Puantaj.php";
 require_once ROOT . "/Model/CaseTransactions.php";
+require_once ROOT . "/Model/Bordro.php";
+require_once ROOT . "/Model/Cases.php";
+require_once ROOT . "/App/Helper/financial.php";
 require_once ROOT . "/App/Helper/security.php";
 require_once ROOT . "/App/Helper/helper.php";
 require_once ROOT . "/App/Helper/date.php";
@@ -36,11 +39,14 @@ if (!$person || $person->firm_id != $firm_id) {
 
 $projects = $projectsModel->getProjectsByFirm($firm_id);
 
-// Puantaj verileri (Mevcut ay için)
-$year = date('Y');
-$month = date('m');
-$firstDayOfMonth = "$year-$month-01";
-$lastDayOfMonth = date('Y-m-t', strtotime($firstDayOfMonth));
+// Ay ve Yıl Navigasyonu
+$year = $_GET['year'] ?? date('Y');
+$month = $_GET['month'] ?? date('m');
+if (strlen($month) == 1) $month = '0' . $month;
+
+$firstDayOfMonth = Date::firstDay($month, $year);
+$lastDayOfMonth = Date::lastDay($month, $year);
+
 $personPuantaj = $puantajModel->getPuantajByPersonAndDate($id, $firstDayOfMonth, $lastDayOfMonth);
 $puantajMap = [];
 foreach ($personPuantaj as $p) {
@@ -274,12 +280,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_person'])) {
   </div>
 
   <!-- Tab: Puantaj Cetveli -->
+  <?php
+    $prevMonth = (int)$month - 1;
+    $prevYear = (int)$year;
+    if ($prevMonth == 0) {
+        $prevMonth = 12;
+        $prevYear--;
+    }
+
+    $nextMonth = (int)$month + 1;
+    $nextYear = (int)$year;
+    if ($nextMonth == 13) {
+        $nextMonth = 1;
+        $nextYear++;
+    }
+  ?>
   <div id="tab-puantaj" class="person-tab-content d-none">
     <div class="mobile-card p-4 shadow-sm mb-4 text-center">
       <div class="d-flex align-items-center justify-content-between mb-4">
-        <button class="btn btn-icon btn-ghost-secondary rounded-circle"><i class="ti ti-chevron-left fs-2"></i></button>
+        <a href="edit?id=<?php echo $id_encrypted; ?>&month=<?php echo $prevMonth; ?>&year=<?php echo $prevYear; ?>" class="btn btn-icon btn-ghost-secondary rounded-circle"><i class="ti ti-chevron-left fs-2"></i></a>
         <h3 class="mb-0 font-weight-bold" style="font-size: 1.15rem;"><?php echo Date::monthName($month); ?> <?php echo $year; ?></h3>
-        <button class="btn btn-icon btn-ghost-secondary rounded-circle"><i class="ti ti-chevron-right fs-2"></i></button>
+        <a href="edit?id=<?php echo $id_encrypted; ?>&month=<?php echo $nextMonth; ?>&year=<?php echo $nextYear; ?>" class="btn btn-icon btn-ghost-secondary rounded-circle"><i class="ti ti-chevron-right fs-2"></i></a>
       </div>
 
       <div class="calendar-grid">
@@ -347,35 +368,138 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_person'])) {
 
   <!-- Tab: Ödemeler & Finans -->
   <div id="tab-finance" class="person-tab-content d-none">
-    <div class="list-group list-group-mobile shadow-sm" style="border-radius: 16px; overflow: hidden;">
-      <?php if (empty($personTransactions)): ?>
-        <div class="p-5 text-center text-muted bg-white">
+    <?php
+    $financialHelper = new Financial();
+    $bordroModel = new Bordro();
+    
+    // Özet Bilgiler (Bordro Modelini Kullanarak)
+    $summary = $bordroModel->sumAllIncomeExpense($id);
+    $total_income = $summary->total_income ?? 0;
+    $total_expense = $summary->total_expense ?? 0;
+    $balance = $total_income - $total_expense;
+    
+    // Gelir Gider Listesi (Bordro Modelini Kullanarak)
+    $income_expenses = $bordroModel->getPersonWorkTransactions($id);
+    
+    // Hakedişleri aya göre grupla
+    $hakedisler = [];
+    $diger_islemler = [];
+    
+    foreach ($income_expenses as $item) {
+        if ($item->kategori == 14) { // Puantaj
+            $key = $item->yil . '-' . $item->ay;
+            if (!isset($hakedisler[$key])) {
+                $hakedisler[$key] = (object)[
+                    'type' => 'hakedis',
+                    'yil' => $item->yil,
+                    'ay' => $item->ay,
+                    'tutar' => 0,
+                    'gun' => $item->gun,
+                    'aciklama' => Date::monthName($item->ay) . ' ' . $item->yil . ' Hakedişi'
+                ];
+            }
+            $hakedisler[$key]->tutar += $item->tutar;
+        } else {
+            $item->type = 'islem';
+            $diger_islemler[] = $item;
+        }
+    }
+    
+    // Tüm işlemleri birleştir ve tarihe göre sırala
+    $all_items = array_merge(array_values($hakedisler), $diger_islemler);
+    usort($all_items, function($a, $b) {
+        return strcmp($b->gun, $a->gun);
+    });
+    ?>
+
+    <!-- Özet Kartları (Yeni Tasarım) -->
+    <div class="row g-2 mb-4 px-1">
+      <div class="col-4">
+        <div class="mobile-card p-2 text-center border-0 shadow-sm" style="background: #e6f6ec; color: #2fb344; border-radius: 16px;">
+          <div class="text-xs font-weight-bold opacity-75 mb-1" style="font-size: 0.65rem; color: #2fb344;">GELİR</div>
+          <div class="text-bold small" style="font-size: 0.85rem;">₺ <?php echo Helper::formattedMoneyWithoutCurrency($total_income); ?></div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="mobile-card p-2 text-center border-0 shadow-sm" style="background: #fbe9e9; color: #d63f3f; border-radius: 16px;">
+          <div class="text-xs font-weight-bold opacity-75 mb-1" style="font-size: 0.65rem; color: #d63f3f;">GİDER</div>
+          <div class="text-bold small" style="font-size: 0.85rem;">₺ <?php echo Helper::formattedMoneyWithoutCurrency($total_expense); ?></div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="mobile-card p-2 text-center border-0 shadow-sm" style="background: #e8f1f9; color: #206bc4; border-radius: 16px;">
+          <div class="text-xs font-weight-bold opacity-75 mb-1" style="font-size: 0.65rem; color: #206bc4;">BAKİYE</div>
+          <div class="text-bold small" style="font-size: 0.85rem;">₺ <?php echo Helper::formattedMoneyWithoutCurrency($balance); ?></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- İşlem Listesi (Kart Tasarımı) -->
+    <div id="person-finance-list" class="px-1">
+      <?php if (empty($all_items)): ?>
+        <div class="mobile-card p-5 text-center text-muted bg-white border-0 shadow-sm" style="border-radius: 20px;">
           <i class="ti ti-receipt-off fs-1 mb-2 opacity-20"></i>
-          <p class="mb-0">Henüz finansal işlem bulunamadı.</p>
+          <p class="mb-0 text-sm">Henüz finansal işlem bulunamadı.</p>
         </div>
       <?php else: ?>
-        <?php foreach ($personTransactions as $t): 
-          $is_income = ($t->type_id == 1);
+        <?php foreach ($all_items as $item): 
+          $is_hakedis = ($item->type === 'hakedis');
+          $is_income = false;
+          if ($is_hakedis) {
+              $is_income = true;
+          } else {
+              $type_info = $financialHelper->getTransactionTypeById($item->kategori);
+              $is_income = ($type_info->type_id == 1);
+          }
         ?>
-          <div class="list-group-item d-flex align-items-center justify-content-between py-3 border-0 border-bottom">
-            <div class="d-flex align-items-center gap-3">
-              <div class="avatar avatar-md rounded-circle <?php echo $is_income ? 'bg-green-lt text-green' : 'bg-red-lt text-red'; ?>">
-                <i class="ti <?php echo $is_income ? 'ti-arrow-up-right' : 'ti-arrow-down-left'; ?> fs-2"></i>
+          <div class="swipe-container mb-3 shadow-sm" style="border-radius: 20px; overflow: hidden;">
+            <?php if (!$is_hakedis): ?>
+              <div class="swipe-actions">
+                <button class="btn-swipe-action btn-delete-payment" data-id="<?php echo Security::encrypt($item->id); ?>" data-type="<?php echo ($item->kategori == 14 ? 'Puantaj Çalışma' : 'Diger'); ?>">
+                  <i class="ti ti-trash"></i>
+                  <span>Sil</span>
+                </button>
               </div>
-              <div>
-                <div class="text-bold text-sm"><?php echo htmlspecialchars($t->description ?: ($is_income ? 'Gelir' : 'Gider')); ?></div>
-                <div class="text-muted text-xs"><?php echo date('d.m.Y', strtotime($t->date)); ?></div>
-              </div>
-            </div>
-            <div class="text-end">
-              <div class="text-bold <?php echo $is_income ? 'text-green' : 'text-red'; ?>">
-                <?php echo $is_income ? '+' : '-'; ?> <?php echo Helper::formattedMoney($t->amount); ?>
+            <?php endif; ?>
+            <div class="swipe-content bg-white transaction-item-content py-4 px-3 <?php echo $is_hakedis ? 'btn-hakedis-detail' : ''; ?>" 
+                 data-month="<?php echo $item->ay ?? ''; ?>" 
+                 data-year="<?php echo $item->yil ?? ''; ?>"
+                 style="border: 1px solid rgba(0,0,0,0.05); <?php echo $is_hakedis ? 'cursor: pointer;' : ''; ?>">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="avatar avatar-lg rounded-circle <?php echo $is_income ? 'bg-green-lt text-green' : 'bg-red-lt text-red'; ?>" style="width: 45px; height: 45px; border: none;">
+                    <i class="ti <?php echo $is_income ? 'ti-arrow-up-right' : 'ti-arrow-down-left'; ?>" style="font-size: 1.3rem;"></i>
+                  </div>
+                  <div>
+                    <div class="text-bold <?php echo $is_hakedis ? 'text-primary' : 'text-dark'; ?>" style="font-size: 0.95rem; margin-bottom: 2px;">
+                      <?php echo htmlspecialchars($item->aciklama ?: ($is_hakedis ? 'Hakedişi' : 'İşlem')); ?>
+                    </div>
+                    <div class="text-muted text-xs">
+                      <?php echo Date::dmY($item->gun); ?>
+                    </div>
+                    <?php if ($is_hakedis): ?>
+                      <div class="mt-1">
+                        <span class="badge bg-primary-lt text-uppercase font-weight-bold" style="font-size: 0.6rem; padding: 2px 6px; border-radius: 4px;">BORDRO</span>
+                      </div>
+                    <?php endif; ?>
+                  </div>
+                </div>
+                <div class="text-end">
+                  <div class="text-bold <?php echo $is_income ? 'text-green' : 'text-red'; ?>" style="font-size: 1.1rem;">
+                    <?php echo $is_income ? '+ ' : '- '; ?> ₺ <?php echo Helper::formattedMoneyWithoutCurrency($item->tutar); ?>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         <?php endforeach; ?>
       <?php endif; ?>
     </div>
+
+    <!-- Floating Action Button for Finance -->
+    <a href="#" class="mobile-fab shadow-lg" data-bs-toggle="modal" data-bs-target="#add-person-transaction-modal" style="bottom: 85px;">
+      <i class="ti ti-plus"></i>
+    </a>
   </div>
 
   <!-- Tab: Evraklar -->
@@ -388,6 +512,119 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_person'])) {
      </div>
   </div>
 </div>
+</div>
+
+<!-- Payroll Detail Modal -->
+<div class="modal modal-blur fade" id="payroll-detail-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content" style="border-radius: 20px; border: none;">
+      <div class="modal-header py-3" style="border-bottom: 1px solid rgba(0,0,0,0.06);">
+        <h5 class="modal-title text-semibold">Bordro Detayı</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3" id="payroll-detail-content">
+        <!-- AJAX Content Here -->
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Yükleniyor...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Person Transaction Modal -->
+<div class="modal modal-blur fade" id="add-person-transaction-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" style="border-radius: 20px; border: none;">
+      <div class="modal-header py-3" style="border-bottom: 1px solid rgba(0,0,0,0.06);">
+        <h5 class="modal-title text-semibold">Yeni Ödeme / Gelir</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form id="add-person-transaction-form">
+          <input type="hidden" name="gm_person_name" value="<?php echo Security::encrypt($id); ?>">
+          <input type="hidden" name="gm_amount_money" value="1">
+          <input type="hidden" name="gm_project_id" value="0">
+          <input type="hidden" name="gm_company" value="0">
+          <input type="hidden" name="action" value="saveTransaction">
+
+          <!-- İşlem Yönü -->
+          <div class="mb-3">
+            <label class="form-label text-xs text-muted text-uppercase tracking-wider font-weight-bold">İşlem Yönü</label>
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="form-selectgroup-item w-100">
+                  <input type="radio" name="transaction_type" value="1" class="form-selectgroup-input">
+                  <span class="form-selectgroup-label d-flex align-items-center justify-content-center py-2.5 rounded-3 text-semibold text-xs border btn-type-income" style="cursor: pointer; transition: all 0.2s;">
+                    <i class="ti ti-arrow-up-right text-success me-1"></i> Gelir
+                  </span>
+                </label>
+              </div>
+              <div class="col-6">
+                <label class="form-selectgroup-item w-100">
+                  <input type="radio" name="transaction_type" value="2" class="form-selectgroup-input" checked>
+                  <span class="form-selectgroup-label d-flex align-items-center justify-content-center py-2.5 rounded-3 text-semibold text-xs border btn-type-expense" style="cursor: pointer; transition: all 0.2s;">
+                    <i class="ti ti-arrow-down-left text-danger me-1"></i> Ödeme
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kasa Seçimi -->
+          <div class="form-floating mb-3">
+            <select name="gm_case_id" id="gm_case_id" class="form-select select2-init" required>
+              <option value="0">Kasa Seçiniz</option>
+              <?php 
+              $caseObj = new Cases();
+              $active_cases = $caseObj->allCaseWithFirmId();
+              foreach ($active_cases as $c): ?>
+                <option value="<?php echo Security::encrypt($c->id); ?>" <?php echo $c->isDefault ? 'selected' : ''; ?>>
+                  <?php echo htmlspecialchars($c->case_name); ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+            <label for="gm_case_id">Kasa <span class="text-danger">*</span></label>
+          </div>
+
+          <!-- Tutar -->
+          <div class="form-floating mb-3">
+            <input type="number" step="0.01" name="amount" id="amount-input" class="form-control text-bold" placeholder="0,00" required>
+            <label for="amount-input">Tutar (₺) <span class="text-danger">*</span></label>
+          </div>
+
+          <!-- Tarih & Tür -->
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <div class="form-floating">
+                <input type="date" name="transaction_date" id="transaction_date" class="form-control" value="<?php echo date('Y-m-d'); ?>" placeholder="İşlem Tarihi">
+                <label for="transaction_date">İşlem Tarihi</label>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating">
+                <select name="gm_incexp_type" id="gm_incexp_type" class="form-select" required>
+                  <option value="">Tür Seçiniz</option>
+                </select>
+                <label for="gm_incexp_type">İşlem Türü <span class="text-danger">*</span></label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Açıklama -->
+          <div class="form-floating">
+            <textarea name="description" id="floatingDescription" class="form-control" placeholder="Açıklama" style="height: 80px;"></textarea>
+            <label for="floatingDescription">Açıklama</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer py-2 d-flex justify-content-between" style="border-top: 1px solid rgba(0,0,0,0.06);">
+        <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Vazgeç</button>
+        <button type="button" class="btn btn-primary px-4" id="submit-person-transaction">Kaydet</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 
@@ -428,7 +665,147 @@ $(document).ready(function() {
         if (tabId === 'info' && $.fn.select2) {
             $('.select2-init').select2();
         }
+
+        // Kasa alt türlerini yükle (Eğer finans sekmesi açıldıysa)
+        if (tabId === 'finance') {
+            fetchSubTypes($('input[name="transaction_type"]:checked').val());
+        }
     });
+
+    // 1. Kasa Alt Türlerini Getir
+    function fetchSubTypes(type) {
+        $.post('/api/financial/transaction.php', {
+            action: 'getSubTypes',
+            type: type
+        }, function(response) {
+            try {
+                var res = typeof response === 'object' ? response : JSON.parse(response);
+                var select = $('#gm_incexp_type');
+                select.empty();
+                select.append('<option value="">Tür Seçiniz</option>');
+                if (res.subTypes && res.subTypes.length > 0) {
+                    res.subTypes.forEach(function(item) {
+                        select.append('<option value="' + item.id + '">' + item.name + '</option>');
+                    });
+                }
+            } catch (e) { console.error(e); }
+        });
+    }
+
+    $('input[name="transaction_type"]').change(function() {
+        fetchSubTypes($(this).val());
+    });
+
+    // 2. Personel İşlemi Kaydet
+    $('#submit-person-transaction').click(function(e) {
+        e.preventDefault();
+        var form = $('#add-person-transaction-form');
+        var formData = form.serialize();
+
+        $.post('/api/financial/transaction.php', formData, function(res) {
+            try {
+                var response = typeof res === 'object' ? res : JSON.parse(res);
+                if (response.status === 'success') {
+                    Swal.fire('Başarılı', response.message, 'success').then(() => location.reload());
+                } else {
+                    Swal.fire('Hata', response.message, 'error');
+                }
+            } catch (e) { Swal.fire('Hata', 'Beklenmeyen bir hata oluştu.', 'error'); }
+        });
+    });
+
+    // 3. Ödeme/İşlem Silme (Swipe Actions)
+    $(document).on('click', '.btn-delete-payment', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var id = btn.data('id');
+        var type = btn.data('type');
+        var personId = '<?php echo Security::encrypt($id); ?>';
+
+        Swal.fire({
+            title: 'Emin misiniz?',
+            text: 'Bu işlemi silmek istediğinize emin misiniz?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Evet, Sil',
+            cancelButtonText: 'Vazgeç'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('/api/persons/person.php?person_id=' + personId + '&type=' + type, {
+                    action: 'deletePayment',
+                    id: id
+                }, function(res) {
+                    try {
+                        var response = typeof res === 'object' ? res : JSON.parse(res);
+                        if (response.status === 'success') {
+                            btn.closest('.swipe-container').fadeOut(300, function() { $(this).remove(); });
+                            Swal.fire('Silindi', response.message, 'success');
+                        } else {
+                            Swal.fire('Hata', response.message, 'error');
+                        }
+                    } catch (e) { Swal.fire('Hata', 'İşlem başarısız.', 'error'); }
+                });
+            }
+        });
+    });
+
+    // 4. Bordro Detayı Görüntüleme
+    $(document).on('click', '.btn-hakedis-detail', function() {
+        var month = $(this).data('month');
+        var year = $(this).data('year');
+        var id = '<?php echo Security::encrypt($id); ?>';
+
+        $('#payroll-detail-content').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Yükleniyor...</p></div>');
+        $('#payroll-detail-modal').modal('show');
+
+        // Root-relative yerine relative path deneyelim
+        $.post('../api/bordro/detail.php', { id: id, month: month, year: year }, function(html) {
+            // Eğer dönen içerik içinde "DOCTYPE" varsa tam sayfa dönmüş demektir, uyarı verelim
+            if (html.indexOf('<!DOCTYPE html>') !== -1 || html.indexOf('<html') !== -1) {
+                $('#payroll-detail-content').html('<div class="alert alert-danger">Bordro detayı yüklenirken bir hata oluştu. Lütfen tekrar deneyin.</div>');
+                console.error("API returned a full page instead of a fragment.");
+            } else {
+                $('#payroll-detail-content').html(html);
+            }
+        }).fail(function() {
+            $('#payroll-detail-content').html('<div class="alert alert-danger">Sunucuyla iletişim kurulamadı.</div>');
+        });
+    });
+
+    // 5. Swipe Logic for Finance Items
+    let touchStartX = 0;
+    let touchMoveX = 0;
+    const swipeThreshold = 70;
+
+    $(document).on('touchstart', '.transaction-item-content', function(e) {
+        touchStartX = e.originalEvent.touches[0].clientX;
+        $('.transaction-item-content').not(this).css('transform', 'translateX(0)');
+    });
+
+    $(document).on('touchmove', '.transaction-item-content', function(e) {
+        touchMoveX = e.originalEvent.touches[0].clientX;
+        let diff = touchStartX - touchMoveX;
+        if (diff > 0 && !$(this).hasClass('btn-hakedis-detail')) { // Only swipe left if not hakediş
+            if (diff > swipeThreshold + 20) diff = swipeThreshold + 20;
+            $(this).css('transition', 'none').css('transform', 'translateX(-' + diff + 'px)');
+        }
+    });
+
+    $(document).on('touchend', '.transaction-item-content', function(e) {
+        let diff = touchStartX - touchMoveX;
+        $(this).css('transition', 'transform 0.2s ease-out');
+        if (diff > swipeThreshold / 2 && !$(this).hasClass('btn-hakedis-detail')) {
+            $(this).css('transform', 'translateX(-' + swipeThreshold + 'px)');
+        } else {
+            $(this).css('transform', 'translateX(0)');
+        }
+    });
+
+    // URL'de ay/yıl parametresi varsa Puantaj sekmesini otomatik aç
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('month') || urlParams.has('year')) {
+        $('.tab-trigger[data-tab="puantaj"]').click();
+    }
 
     // Dışarı tıklayınca kapatma
     $(document).on('click', function(e) {
