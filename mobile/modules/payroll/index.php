@@ -73,7 +73,56 @@ if ($view == 'personnel') {
 
   <?php if ($view == 'periods'): ?>
     <!-- DÖNEM LİSTESİ -->
-    <div class="row g-1">
+    <?php
+    // Kasa Tasarımı Uyumlu Aktif Dönem Özeti Hesaplaması
+    $active_month = ($year == date('Y')) ? date('n') : 12;
+    $active_lastDay = Date::lastDay($active_month, $year);
+    $active_firstDay = Date::firstDay($active_month, $year);
+    $active_persons = $personModel->getPersonIdByFirmCurrentMonth($firm_id, $active_lastDay);
+    
+    $active_total_gelir = 0;
+    $active_total_gider = 0;
+    foreach($active_persons as $p) {
+        $s = $bordroModel->getPersonSalaryAndWageCut($p->id, $active_firstDay, $active_lastDay);
+        $active_total_gelir += $s->gelir ?? 0;
+        $active_total_gider += $s->odeme ?? 0;
+    }
+    $active_total_kalan = $active_total_gelir - $active_total_gider;
+    ?>
+
+    <!-- Aktif Dönem Özeti Kartı (Kasa Bakiyesi Kartı Tasarımı) -->
+    <div class="mobile-card bg-primary text-white p-4 mb-4 position-relative overflow-hidden" style="border: none; border-radius: 20px; background: linear-gradient(135deg, #206bc4 0%, #104b8c 100%) !important;">
+      <div class="position-absolute" style="right: -10px; bottom: -20px; font-size: 8rem; opacity: 0.12; pointer-events: none;">
+        <i class="ti ti-calendar-event"></i>
+      </div>
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-white-50 text-xs text-uppercase tracking-wider font-weight-bold" style="font-size: 0.7rem;"><?php echo Date::monthName($active_month); ?> <?php echo $year; ?> (Aktif Dönem)</span>
+        <i class="ti ti-calendar-event" style="font-size: 1.5rem; opacity: 0.8;"></i>
+      </div>
+      <h3 class="mb-0 text-bold" style="font-size: 2.2rem; letter-spacing: -1px;">₺ <?php echo Helper::formattedMoneyWithoutCurrency($active_total_gelir); ?></h3>
+      
+      <div class="mt-2 d-flex align-items-center justify-content-between">
+        <span class="badge bg-white-10 text-white text-xs d-flex align-items-center gap-1" style="background: rgba(255,255,255,0.15); border-radius: 8px; padding: 4px 10px;">
+          <i class="ti ti-users"></i>
+          <?php echo count($active_persons); ?> Personel
+        </span>
+      </div>
+
+      <!-- Entegre Toplam Ödeme ve Kalan Ödeme Bilgileri -->
+      <div class="row g-2 mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.15) !important;">
+        <div class="col-6">
+          <div class="text-white-50 text-xs text-uppercase font-weight-bold mb-1" style="font-size: 0.6rem; opacity: 0.85;">TOPLAM ÖDENEN</div>
+          <div class="h4 mb-0 text-bold text-white">₺ <?php echo Helper::formattedMoneyWithoutCurrency($active_total_gider); ?></div>
+        </div>
+        <div class="col-6 ps-3" style="border-left: 1px solid rgba(255,255,255,0.15) !important;">
+          <div class="text-white-50 text-xs text-uppercase font-weight-bold mb-1" style="font-size: 0.6rem; opacity: 0.85;">KALAN ÖDEME</div>
+          <div class="h4 mb-0 text-bold text-white">₺ <?php echo Helper::formattedMoneyWithoutCurrency($active_total_kalan); ?></div>
+        </div>
+      </div>
+    </div>
+
+    <h4 class="mb-3 text-semibold px-1" style="font-size: 0.95rem;">Dönem Listesi</h4>
+    <div class="list-group list-group-mobile shadow-sm mb-4">
       <?php 
       $current_month = date('n');
       $current_year = date('Y');
@@ -83,29 +132,24 @@ if ($view == 'personnel') {
         $person_count = count($personModel->getPersonIdByFirmCurrentMonth($firm_id, $lastDay));
         $is_active = ($m == $current_month && $year == $current_year);
       ?>
-        <div class="col-12">
-          <a href="index.php?route=payroll&view=personnel&year=<?php echo $year; ?>&month=<?php echo $m; ?>" 
-             class="mobile-card d-block text-decoration-none p-2 shadow-sm <?php echo $is_active ? 'border-primary' : ''; ?>">
-            <div class="d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center">
-                <div class="avatar avatar-md rounded-circle bg-primary-lt text-primary me-3 border border-white shadow-sm">
-                  <i class="ti ti-calendar-event fs-2"></i>
-                </div>
-                <div>
-                  <h4 class="mb-0 text-bold text-dark"><?php echo Date::monthName($m); ?></h4>
-                  <div class="text-muted text-xs"><?php echo $year; ?> Finansal Dönemi</div>
-                </div>
-              </div>
-              <div class="text-end">
-                <div class="text-bold text-primary fs-3"><?php echo $person_count; ?></div>
-                <div class="text-muted text-xs font-weight-bold opacity-75">PERSONEL</div>
-              </div>
+        <a href="index.php?route=payroll&view=personnel&year=<?php echo $year; ?>&month=<?php echo $m; ?>" 
+           class="list-group-item d-flex align-items-center justify-content-between py-3 text-decoration-none">
+          <div class="d-flex align-items-center gap-3">
+            <div class="avatar avatar-sm rounded-circle d-flex align-items-center justify-content-center bg-primary-lt text-primary" style="width: 40px; height: 40px;">
+              <i class="ti ti-calendar-event fs-2"></i>
             </div>
-          </a>
-        </div>
+            <div>
+              <div class="text-bold text-sm text-dark"><?php echo Date::monthName($m); ?></div>
+              <div class="text-muted text-xs mt-0.5"><?php echo $year; ?> Finansal Dönemi</div>
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="text-bold text-primary text-sm"><?php echo $person_count; ?></div>
+            <div class="text-muted text-xs font-weight-bold opacity-75" style="font-size: 0.65rem;">PERSONEL</div>
+          </div>
+        </a>
       <?php endfor; ?>
     </div>
-
   <?php elseif ($view == 'personnel'): ?>
     <!-- PERSONEL LİSTESİ -->
     <?php

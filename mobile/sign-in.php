@@ -335,15 +335,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 background: #ffffff;
                 display: flex;
                 flex-direction: column;
-                justify-content: space-between;
-                padding: 2rem 1.75rem 1.5rem;
+                justify-content: center;
+                padding: 2rem 1.75rem;
             }
             .login-middle-form {
-                flex-grow: 1;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                margin: 1rem 0;
+                margin: 2.5rem 0 1.5rem;
             }
         }
     </style>
