@@ -254,6 +254,7 @@ $dates = Date::generateDates($year, $month, $days);
 
 
 <?php include_once 'content/puantaj-turleri-modal.php' ?>
+<?php include_once 'content/puantaj-istatistik-modal.php' ?>
 
 
 <div class="container-xl mt-3">
@@ -292,11 +293,7 @@ $dates = Date::generateDates($year, $month, $days);
                     <i class="ti ti-send icon"></i>
                 </label>
 
-                <?php if ($Auths->hasPermission('puantaj_data_entry')) { ?>
-                    <button href="" type="button" class="btn btn-primary float-end" onclick="puantaj_olustur()">
-                        <i class="ti ti-device-floppy icon me-2"></i> Kaydet
-                    </button>
-                <?php } ?>
+             
 
 
 
@@ -330,10 +327,20 @@ $dates = Date::generateDates($year, $month, $days);
                         </div>
                     </div>
 
-                    <div class="col-auto ms-auto">
+                    <div class="col-auto ms-auto d-flex gap-2">
+                      
+                       
                         <a href="#" class="btn" data-bs-toggle="modal" data-bs-target="#modal-default">
                             <i class="ti ti-plus icon me-2"></i> Puantaj Türleri
                         </a>
+                           <?php if ($Auths->hasPermission('puantaj_data_entry')) { ?>
+                    <button href="" type="button" class="btn btn-primary float-end" onclick="puantaj_olustur()">
+                        <i class="ti ti-device-floppy icon me-2"></i> Kaydet
+                    </button>
+                      <a class="btn btn-animate-icon btn-animate-icon-rotate" data-bs-toggle="modal" data-bs-target="#modal-statistics"><!-- Download SVG icon from http://tabler.io/icons/icon/x -->
+                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chart-dots-2"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 3v18h18" /><path d="M7 15a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M11 5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M16 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M21 3l-6 1.5" /><path d="M14.113 6.65l2.771 3.695" /><path d="M16 12.5l-5 2" /></svg>
+                        </a>
+                <?php } ?>
 
                     </div>
                 </div>

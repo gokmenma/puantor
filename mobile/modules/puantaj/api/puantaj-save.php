@@ -56,7 +56,10 @@ try {
     }
 
     // Varsayılan Proje tayini
-    $project_id = $puantajObj->getPuantajProjectId($person_id, $date);
+    $project_id = intval($_POST['project_id'] ?? 0);
+    if (!$project_id) {
+        $project_id = $puantajObj->getPuantajProjectId($person_id, $date);
+    }
     if (!$project_id) {
         $project_id = intval($personModel->getPersonByField($person_id, 'project_id') ?? 0);
     }
