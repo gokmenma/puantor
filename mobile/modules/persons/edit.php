@@ -758,8 +758,8 @@ $(document).ready(function() {
         $('#payroll-detail-content').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Yükleniyor...</p></div>');
         $('#payroll-detail-modal').modal('show');
 
-        // Root-relative yerine relative path deneyelim
-        $.post('../api/bordro/detail.php', { id: id, month: month, year: year }, function(html) {
+        // Yeni oluşturduğumuz mobil proxy API'sini kullanalım
+        $.post('api/bordro/detail.php', { id: id, month: month, year: year }, function(html) {
             // Eğer dönen içerik içinde "DOCTYPE" varsa tam sayfa dönmüş demektir, uyarı verelim
             if (html.indexOf('<!DOCTYPE html>') !== -1 || html.indexOf('<html') !== -1) {
                 $('#payroll-detail-content').html('<div class="alert alert-danger">Bordro detayı yüklenirken bir hata oluştu. Lütfen tekrar deneyin.</div>');

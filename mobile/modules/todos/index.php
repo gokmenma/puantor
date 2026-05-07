@@ -13,123 +13,146 @@ body[data-bs-theme="dark"] {
     --todo-text-muted: #94a3b8;
 }
 
-.section-label {
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--todo-text-muted);
-    margin-bottom: 0.75rem;
-    opacity: 0.85;
+/* Custom styled tabs like premium mobile feel in finance */
+.btn-filter.active {
+    color: var(--mobile-primary) !important;
+    background: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+body[data-bs-theme="dark"] .btn-filter.active {
+    color: #fff !important;
+    background: #1e293b !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
-/* Individual Card Style like the 2nd Image */
-.swipe-container {
+.form-selectgroup-input:checked + .form-selectgroup-label {
+    border-color: var(--mobile-primary) !important;
+    background: rgba(32, 107, 196, 0.04) !important;
+}
+body[data-bs-theme="dark"] .form-selectgroup-input:checked + .form-selectgroup-label {
+    background: rgba(32, 107, 196, 0.15) !important;
+}
+
+.todo-item {
+    transition: background-color 0.2s;
+}
+.todo-item:hover {
+    background-color: rgba(0,0,0,0.01);
+}
+body[data-bs-theme="dark"] .todo-item:hover {
+    background-color: rgba(255,255,255,0.01);
+}
+
+select.form-select {
+    border-radius: 10px !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    padding: 0.5rem 0.75rem !important;
+    height: auto !important;
+    font-size: 0.85rem !important;
+}
+body[data-bs-theme="dark"] select.form-select {
+    border-color: var(--mobile-card-border-dark) !important;
+    background-color: #1e293b !important;
+    color: #f4f6fa !important;
+}
+
+/* Custom Select2 Styling for Mobile */
+.select2-container--default .select2-selection--single {
+    border-radius: 10px !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    height: 44px !important;
+    padding: 0.5rem 0.75rem !important;
+    background-color: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+}
+body[data-bs-theme="dark"] .select2-container--default .select2-selection--single {
+    border-color: var(--mobile-card-border-dark) !important;
+    background-color: #1e293b !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: inherit !important;
+    padding-left: 0 !important;
+    line-height: normal !important;
+    font-size: 0.85rem !important;
+}
+body[data-bs-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #f4f6fa !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 44px !important;
+    right: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+.select2-dropdown {
+    border-radius: 12px !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+    background-color: #fff !important;
+    overflow: hidden !important;
+    z-index: 1060 !important;
+}
+body[data-bs-theme="dark"] .select2-dropdown {
+    background-color: #1e293b !important;
+    border-color: var(--mobile-card-border-dark) !important;
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: var(--mobile-primary) !important;
+}
+.select2-container {
+    width: 100% !important;
+}
+
+/* Swipe to Delete Styles matching finance perfectly */
+.todo-item-wrapper {
     position: relative;
     overflow: hidden;
-    background: transparent;
-    border-radius: 12px;
-    margin-bottom: 12px; /* Gap between cards */
-    border: 1px solid var(--todo-card-border);
-    transition: border-color 0.2s ease;
+    background: #fff;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    user-select: none;
 }
-
-/* Active Border when Checked */
-.swipe-container:has(.form-selectgroup-input:checked) {
-    border-color: var(--mobile-primary);
+body[data-bs-theme="dark"] .todo-item-wrapper,
+body[data-bs-theme="dark"] .todo-item-content {
+    background: #1e293b !important;
 }
-
-.swipe-actions {
+.todo-item-actions {
     position: absolute;
     right: 0;
     top: 0;
     height: 100%;
-    width: 75px;
     display: flex;
     align-items: center;
-    justify-content: center;
     background: #d63f3f;
     z-index: 1;
 }
-
-.swipe-content {
+.todo-item-content {
     position: relative;
+    background: #fff;
     z-index: 2;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.2s ease-out;
     width: 100%;
-    background: var(--todo-card-bg) !important;
+    padding: 1rem;
 }
-
-/* Tabler Standard Selectgroup Overrides for Individual Cards */
-.form-selectgroup-item {
-    margin-bottom: 0 !important;
-}
-
-.form-selectgroup-label {
-    border: none !important;
-    border-radius: 0 !important;
-    padding: 0.85rem 1rem !important;
-    background: transparent !important;
-    display: flex !important;
-    align-items: center !important;
-    transition: all 0.2s ease !important;
-}
-
-.form-selectgroup-check {
-    width: 22px !important;
-    height: 22px !important;
-    margin-top: 0 !important;
-}
-
-.todo-title {
-    color: var(--todo-text-main);
-    font-weight: 600;
-    font-size: 0.9rem;
-    line-height: 1.4;
-}
-
-.todo-meta {
-    font-size: 0.75rem;
-    color: var(--todo-text-muted);
-    margin-top: 1px;
-}
-
-.form-selectgroup-input:checked + .form-selectgroup-label .todo-title {
-    text-decoration: line-through;
-    opacity: 0.6;
-}
-
-.btn-swipe-action {
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    border: none;
+.btn-swipe-delete {
     color: white;
+    width: 70px;
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    font-size: 0.65rem;
-    font-weight: 700;
+    border: none;
+    background: transparent;
+    font-size: 0.7rem;
+    font-weight: 600;
 }
-
-.form-floating > .form-control,
-.form-floating > .form-select,
-.form-floating > textarea {
-    color: var(--todo-text-main) !important;
-}
-
-.form-floating > label {
-    color: #64748b !important;
-    font-size: 0.85rem;
-}
-
-.form-floating > .form-control:focus {
-    border-color: var(--mobile-primary) !important;
-    box-shadow: none !important;
+.btn-swipe-delete i {
+    font-size: 1.2rem;
+    margin-bottom: 2px;
 }
 </style>
+
 <?php
 require_once ROOT . "/Model/TodoModel.php";
 require_once ROOT . "/Model/Projects.php";
@@ -154,128 +177,118 @@ foreach ($todos as $todo) {
 }
 ?>
 
-<div class="container px-3 pb-5">
-    <div class="d-flex align-items-center justify-content-between mb-4 mt-2">
-        <div>
-            <h2 class="mb-0 text-bold" style="letter-spacing: -0.5px; font-size: 1.6rem;">Yapılacaklar</h2>
-            <p class="text-muted text-xs mb-0 mt-1">Görevlerinizi buradan takip edebilirsiniz.</p>
-        </div>
-        <button class="btn btn-primary shadow-sm" onclick="openTodoModal()" style="border-radius: 12px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: none; background: var(--mobile-primary);">
-            <i class="ti ti-plus" style="font-size: 1.5rem;"></i>
-        </button>
+<div class="container px-0">
+  <div class="mb-4 d-flex align-items-center justify-content-between">
+    <div>
+      <h2 class="mb-1 text-semibold" style="letter-spacing: -0.5px;">Yapılacaklar</h2>
+      <p class="text-muted text-xs mb-0">Görevlerinizi buradan takip edebilirsiniz.</p>
     </div>
+  </div>
 
-    <!-- Devam Eden Görevler -->
-    <div class="mb-5 px-1">
-        <div class="section-label">Devam Edenler (<?php echo count($pending_todos); ?>)</div>
-        
-        <?php if (empty($pending_todos)): ?>
-            <div class="text-center py-5 bg-white rounded-3 border">
-                <div class="avatar avatar-lg rounded-circle bg-success-lt mb-3 mx-auto">
-                    <i class="ti ti-confetti fs-1"></i>
+  <!-- Özet Kartı (Gradient like Kasa Bakiyesi Kartı) -->
+  <div class="mobile-card bg-primary text-white p-4 mb-4 position-relative overflow-hidden" style="border: none; border-radius: 20px; background: linear-gradient(135deg, #206bc4 0%, #104b8c 100%) !important;">
+    <div class="position-absolute" style="right: -10px; bottom: -20px; font-size: 8rem; opacity: 0.12; pointer-events: none;">
+      <i class="ti ti-checkbox"></i>
+    </div>
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <span class="text-white-50 text-xs text-uppercase tracking-wider font-weight-bold" style="font-size: 0.7rem;">GÖREVLER DURUM ÖZETİ</span>
+      <i class="ti ti-list-check" style="font-size: 1.5rem; opacity: 0.8;"></i>
+    </div>
+    <h3 class="mb-0 text-bold" style="font-size: 2.2rem; letter-spacing: -1px;"><?php echo count($todos); ?> Toplam Görev</h3>
+    <div class="mt-3 d-flex gap-2">
+      <span class="badge bg-white-10 text-white text-xs d-flex align-items-center gap-1" style="background: rgba(255,255,255,0.15); border-radius: 8px; padding: 4px 10px;">
+        <i class="ti ti-confetti"></i>
+        <?php echo count($completed_todos); ?> Tamamlanan
+      </span>
+    </div>
+  </div>
+
+  <!-- Two-Column Stats Row (exactly like Income/Expenses style) -->
+  <div class="row g-1 mb-2">
+    <div class="col-6">
+      <div class="mobile-card p-3 mb-0 border-0" style="background: rgba(32, 107, 196, 0.1); color: var(--mobile-primary); border-radius: 16px;">
+        <div class="text-xs text-uppercase font-weight-bold mb-1" style="font-size: 0.65rem; opacity: 0.8;">Bekleyenler</div>
+        <div class="text-bold h3 mb-0"><?php echo count($pending_todos); ?> Görev</div>
+      </div>
+    </div>
+    <div class="col-6">
+      <div class="mobile-card p-3 mb-0 border-0" style="background: rgba(47, 179, 68, 0.1); color: #2fb344; border-radius: 16px;">
+        <div class="text-xs text-uppercase font-weight-bold mb-1" style="font-size: 0.65rem; opacity: 0.8;">Tamamlananlar</div>
+        <div class="text-bold h3 mb-0"><?php echo count($completed_todos); ?> Görev</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- İşlem Filtreleri (like Son İşlemler & Filtreler) -->
+  <div class="d-flex align-items-center justify-content-between mb-3 mt-4">
+    <h4 class="mb-0 text-semibold" style="font-size: 0.95rem;">Son Görevler</h4>
+    <div class="btn-group btn-group-sm" role="group" style="border-radius: 8px; overflow: hidden; background: rgba(0,0,0,0.03);">
+      <button type="button" class="btn btn-light btn-filter active" data-filter="all" style="font-size: 0.7rem; padding: 4px 8px;">Tümü</button>
+      <button type="button" class="btn btn-light btn-filter" data-filter="pending" style="font-size: 0.7rem; padding: 4px 8px;">Bekleyen</button>
+      <button type="button" class="btn btn-light btn-filter" data-filter="completed" style="font-size: 0.7rem; padding: 4px 8px;">Tamamlanan</button>
+    </div>
+  </div>
+
+  <div class="list-group list-group-mobile mb-4" id="todos-list">
+    <?php if (empty($todos)): ?>
+      <div class="text-center py-5 bg-white rounded-3 border">
+        <i class="ti ti-confetti text-muted mb-2" style="font-size: 2.5rem; opacity: 0.5;"></i>
+        <p class="text-muted text-sm mb-0">Görev bulunamadı.</p>
+      </div>
+    <?php else: ?>
+      <?php foreach ($todos as $todo): 
+        $is_done = ($todo->status ?? '0') == '1';
+        $todo_id_encrypted = Security::encrypt($todo->id);
+      ?>
+        <div class="todo-item-wrapper todo-item todo-row" 
+             data-type="<?php echo $is_done ? 'completed' : 'pending'; ?>"
+             data-id="<?php echo $todo_id_encrypted; ?>"
+             data-title="<?php echo htmlspecialchars($todo->title); ?>"
+             data-description="<?php echo htmlspecialchars($todo->description ?? ''); ?>"
+             data-project-id="<?php echo $todo->project_id; ?>"
+             data-due-date="<?php echo $todo->due_date; ?>"
+             data-status="<?php echo $todo->status; ?>">
+          <div class="todo-item-actions">
+            <button class="btn-swipe-delete" onclick="deleteTodo('<?php echo $todo_id_encrypted; ?>')">
+              <i class="ti ti-trash"></i>
+              <span>Sil</span>
+            </button>
+          </div>
+          <div class="todo-item-content d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+              <!-- Custom status toggle avatar matches the finance circle style perfectly -->
+              <div onclick="toggleTodoStatusDirect('<?php echo $todo_id_encrypted; ?>', '<?php echo $todo->status; ?>')" class="avatar avatar-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: <?php echo $is_done ? 'rgba(47, 179, 68, 0.15)' : 'rgba(32, 107, 196, 0.15)'; ?>; color: <?php echo $is_done ? '#2fb344' : 'var(--mobile-primary)'; ?>; cursor: pointer;">
+                <i class="ti <?php echo $is_done ? 'ti-square-check' : 'ti-square'; ?>" style="font-size: 1.25rem;"></i>
+              </div>
+              <div onclick="editTodo('<?php echo $todo_id_encrypted; ?>')" style="cursor: pointer;">
+                <div class="text-bold text-sm <?php echo $is_done ? 'text-decoration-line-through text-muted' : ''; ?>" style="color: var(--tblr-body-color, #1d273b);"><?php echo htmlspecialchars($todo->title); ?></div>
+                <div class="text-muted text-xs d-flex align-items-center gap-1 mt-0.5">
+                  <?php if (!empty($todo->project_name)): ?>
+                    <span><?php echo htmlspecialchars($todo->project_name); ?></span>
+                    <span class="text-muted-50">•</span>
+                  <?php endif; ?>
+                  <span class="<?php echo !$is_done && !empty($todo->due_date) && strtotime($todo->due_date) < time() ? 'text-danger text-bold' : ''; ?>">
+                    <?php echo !empty($todo->due_date) && $todo->due_date !== '0000-00-00 00:00:00' ? date('d.m.Y H:i', strtotime($todo->due_date)) : 'Süresiz'; ?>
+                  </span>
                 </div>
-                <p class="text-muted text-sm mb-0">Harika! Bekleyen görev yok.</p>
+              </div>
             </div>
-        <?php else: ?>
-            <?php foreach ($pending_todos as $todo): 
-                $todo_id_encrypted = Security::encrypt($todo->id);
-            ?>
-                <div class="swipe-container" data-id="<?php echo $todo_id_encrypted; ?>">
-                    <div class="swipe-actions">
-                        <button class="btn-swipe-action" onclick="deleteTodo('<?php echo $todo_id_encrypted; ?>')">
-                            <i class="ti ti-trash"></i>
-                            <span>SİL</span>
-                        </button>
-                    </div>
-                    <div class="swipe-content todo-row" 
-                         data-id="<?php echo $todo_id_encrypted; ?>"
-                         data-title="<?php echo htmlspecialchars($todo->title); ?>"
-                         data-description="<?php echo htmlspecialchars($todo->description ?? ''); ?>"
-                         data-project-id="<?php echo $todo->project_id; ?>"
-                         data-due-date="<?php echo $todo->due_date; ?>"
-                         data-status="0">
-                        <label class="form-selectgroup-item w-100 m-0">
-                            <input type="checkbox" class="form-selectgroup-input" onchange="toggleTodoStatus('<?php echo $todo_id_encrypted; ?>', this)">
-                            <div class="form-selectgroup-label">
-                                <div class="me-3">
-                                    <span class="form-selectgroup-check"></span>
-                                </div>
-                                <div class="flex-fill" onclick="event.preventDefault(); event.stopPropagation(); editTodo('<?php echo $todo_id_encrypted; ?>')">
-                                    <div class="todo-title"><?php echo htmlspecialchars($todo->title); ?></div>
-                                    <div class="todo-meta">
-                                        <?php if (!empty($todo->project_name)): ?>
-                                            <span><?php echo htmlspecialchars($todo->project_name); ?></span>
-                                        <?php endif; ?>
-                                        <?php if (!empty($todo->due_date) && $todo->due_date !== '0000-00-00 00:00:00'): ?>
-                                            <?php if (!empty($todo->project_name)): ?><span class="text-muted-50 mx-1">•</span><?php endif; ?>
-                                            <span class="<?php echo strtotime($todo->due_date) < time() ? 'text-danger' : ''; ?>">
-                                                <?php echo date('d M H:i', strtotime($todo->due_date)); ?>
-                                            </span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                                <div class="ms-auto text-muted" onclick="event.preventDefault(); event.stopPropagation(); editTodo('<?php echo $todo_id_encrypted; ?>')">
-                                    <i class="ti ti-chevron-right opacity-30"></i>
-                                </div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
-    </div>
-
-    <!-- Tamamlanan Görevler -->
-    <?php if (!empty($completed_todos)): ?>
-    <div class="mb-4 px-1">
-        <div class="section-label d-flex align-items-center justify-content-between" data-bs-toggle="collapse" href="#completedList" role="button" aria-expanded="true" style="cursor: pointer;">
-            <span>Tamamlananlar (<?php echo count($completed_todos); ?>)</span>
-            <i class="ti ti-chevron-down opacity-50"></i>
+            <div onclick="editTodo('<?php echo $todo_id_encrypted; ?>')" class="text-muted" style="cursor: pointer;">
+              <i class="ti ti-chevron-right opacity-30"></i>
+            </div>
+          </div>
         </div>
-        
-        <div class="collapse show" id="completedList">
-            <?php foreach ($completed_todos as $todo): 
-                $todo_id_encrypted = Security::encrypt($todo->id);
-            ?>
-                <div class="swipe-container" data-id="<?php echo $todo_id_encrypted; ?>">
-                    <div class="swipe-actions">
-                        <button class="btn-swipe-action" onclick="deleteTodo('<?php echo $todo_id_encrypted; ?>')">
-                            <i class="ti ti-trash"></i>
-                            <span>SİL</span>
-                        </button>
-                    </div>
-                    <div class="swipe-content todo-row" 
-                         data-id="<?php echo $todo_id_encrypted; ?>"
-                         data-title="<?php echo htmlspecialchars($todo->title); ?>"
-                         data-description="<?php echo htmlspecialchars($todo->description ?? ''); ?>"
-                         data-project-id="<?php echo $todo->project_id; ?>"
-                         data-due-date="<?php echo $todo->due_date; ?>"
-                         data-status="1">
-                        <label class="form-selectgroup-item w-100 m-0">
-                            <input type="checkbox" checked class="form-selectgroup-input" onchange="toggleTodoStatus('<?php echo $todo_id_encrypted; ?>', this)">
-                            <div class="form-selectgroup-label">
-                                <div class="me-3">
-                                    <span class="form-selectgroup-check"></span>
-                                </div>
-                                <div class="flex-fill">
-                                    <div class="todo-title"><?php echo htmlspecialchars($todo->title); ?></div>
-                                    <div class="todo-meta">
-                                        <?php if (!empty($todo->project_name)): ?>
-                                            <span><?php echo htmlspecialchars($todo->project_name); ?></span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
+      <?php endforeach; ?>
     <?php endif; ?>
+  </div>
 </div>
 
-<!-- Modal Structure -->
+<!-- Floating Action Button (FAB) matches finance page FAB perfectly -->
+<a href="#" class="mobile-fab" onclick="openTodoModal()">
+  <i class="ti ti-plus"></i>
+</a>
+
+<!-- Modal Structure matches finance perfectly -->
 <div class="modal modal-blur fade" id="todoModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content" style="border-radius: 20px; border: none;">
@@ -359,7 +372,7 @@ foreach ($todos as $todo) {
     body[data-bs-theme="dark"] .form-floating > textarea {
         color: #f4f6fa !important;
     }
-
+    
     .form-floating > label {
         color: #64748b !important;
     }
@@ -393,6 +406,66 @@ $(document).ready(function() {
             disableMobile: "true"
         });
     }
+
+    // Filter Tasks instantly matches finance perfectly
+    $('.btn-filter').click(function() {
+        $('.btn-filter').removeClass('active');
+        $(this).addClass('active');
+        var filter = $(this).data('filter');
+        
+        if (filter === 'all') {
+            $('.todo-item').fadeIn(200);
+        } else {
+            $('.todo-item').hide();
+            $('.todo-item[data-type="' + filter + '"]').fadeIn(200);
+        }
+    });
+
+    // Swipe to delete functionality matches finance perfectly
+    let touchStartX = 0;
+    let touchMoveX = 0;
+    let currentSwipeItem = null;
+    const swipeThreshold = 70;
+
+    $(document).on('touchstart', '.todo-item-content', function(e) {
+        touchStartX = e.originalEvent.touches[0].clientX;
+        currentSwipeItem = $(this);
+        
+        // Reset other open items
+        $('.todo-item-content').not(currentSwipeItem).css('transform', 'translateX(0)');
+    });
+
+    $(document).on('touchmove', '.todo-item-content', function(e) {
+        touchMoveX = e.originalEvent.touches[0].clientX;
+        let diff = touchStartX - touchMoveX;
+        
+        // Only swipe left
+        if (diff > 0) {
+            if (diff > swipeThreshold + 20) diff = swipeThreshold + 20; // Limit over-swipe
+            $(this).css('transition', 'none');
+            $(this).css('transform', 'translateX(-' + diff + 'px)');
+        } else {
+            $(this).css('transform', 'translateX(0)');
+        }
+    });
+
+    $(document).on('touchend', '.todo-item-content', function(e) {
+        let diff = touchStartX - touchMoveX;
+        $(this).css('transition', 'transform 0.2s ease-out');
+        
+        if (diff > swipeThreshold / 2) {
+            $(this).css('transform', 'translateX(-' + swipeThreshold + 'px)');
+        } else {
+            $(this).css('transform', 'translateX(0)');
+        }
+    });
+
+    // Close swipe on click elsewhere
+    $(document).on('touchstart', function(e) {
+        if (!$(e.target).closest('.todo-item-wrapper').length) {
+            $('.todo-item-content').css('transform', 'translateX(0)');
+        }
+    });
 });
 
 function openTodoModal() {
@@ -457,12 +530,12 @@ function editTodo(id) {
     new bootstrap.Modal($('#todoModal')).show();
 }
 
-function toggleTodoStatus(id, checkbox) {
-    const status = checkbox.checked ? '1' : '0';
+function toggleTodoStatusDirect(id, currentStatus) {
+    const newStatus = currentStatus === '1' ? '0' : '1';
     $.ajax({
         url: 'modules/todos/api/todo-toggle.php',
         method: 'POST',
-        data: { id: id, status: status },
+        data: { id: id, status: newStatus },
         dataType: 'json',
         success: function(response) {
             if (response.status === 'success') {
@@ -478,6 +551,7 @@ function deleteTodo(id) {
         text: "Bu işlem geri alınamaz!",
         icon: 'warning',
         showCancelButton: true,
+        confirmButtonColor: '#d63f3f',
         confirmButtonText: 'Evet, Sil',
         cancelButtonText: 'İptal'
     }).then((result) => {
@@ -496,67 +570,4 @@ function deleteTodo(id) {
         }
     });
 }
-    // Improved Swipe Logic (Refined for Tap vs Swipe)
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchMoveX = 0;
-    let isSwiping = false;
-    let currentSwipeItem = null;
-    const swipeThreshold = 75;
-
-    $(document).on('touchstart', '.swipe-content', function(e) {
-        touchStartX = e.originalEvent.touches[0].clientX;
-        touchStartY = e.originalEvent.touches[0].clientY;
-        currentSwipeItem = $(this);
-        isSwiping = false;
-        
-        // Reset other open items
-        $('.swipe-content').not(currentSwipeItem).css('transition', 'transform 0.3s ease').css('transform', 'translateX(0)');
-    });
-
-    $(document).on('touchmove', '.swipe-content', function(e) {
-        touchMoveX = e.originalEvent.touches[0].clientX;
-        let touchMoveY = e.originalEvent.touches[0].clientY;
-        
-        let diffX = touchStartX - touchMoveX;
-        let diffY = Math.abs(touchStartY - touchMoveY);
-
-        // If user is scrolling vertically, don't swipe
-        if (diffY > 10 && !isSwiping) return;
-
-        // Start swiping if horizontal movement is significant
-        if (diffX > 10) {
-            isSwiping = true;
-            if (diffX > swipeThreshold + 20) diffX = swipeThreshold + 20; 
-            $(this).css('transition', 'none');
-            $(this).css('transform', 'translateX(-' + diffX + 'px)');
-            
-            // Prevent scrolling when swiping
-            if (e.cancelable) e.preventDefault();
-        } else if (diffX < 0 && isSwiping) {
-             $(this).css('transform', 'translateX(0)');
-             isSwiping = false;
-        }
-    });
-
-    $(document).on('touchend', '.swipe-content', function(e) {
-        if (!isSwiping) return;
-        
-        let diffX = touchStartX - touchMoveX;
-        $(this).css('transition', 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)');
-        
-        if (diffX > swipeThreshold / 2) {
-            $(this).css('transform', 'translateX(-' + swipeThreshold + 'px)');
-        } else {
-            $(this).css('transform', 'translateX(0)');
-        }
-        isSwiping = false;
-    });
-
-    // Close swipe on click elsewhere
-    $(document).on('mousedown touchstart', function(e) {
-        if (!$(e.target).closest('.swipe-container').length) {
-            $('.swipe-content').css('transition', 'transform 0.3s ease').css('transform', 'translateX(0)');
-        }
-    });
 </script>
