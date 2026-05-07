@@ -58,7 +58,7 @@ $active_firm_name = $active_firm ? $active_firm->firm_name : 'Firma Seçilmedi';
 
 
   <!-- KPI İstatistik Kartları (Grid) -->
-  <div class="row g-3 mb-4">
+  <div class="row g-1 mb-2">
     <!-- Personel Kartı -->
     <div class="col-6">
       <div class="mobile-card h-100 d-flex flex-column justify-content-between mb-0">

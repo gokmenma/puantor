@@ -16,8 +16,7 @@ if (file_exists($target)) {
     echo json_encode(["status" => "error", "message" => "API target not found"]);
     exit;
 }
-// Note: transaction.php should have its own ob_clean and exit for getSubTypes.
-// If it doesn't exit, we clean any stray output here.
+// If it doesn't exit, we flush the output here.
 if (ob_get_length()) {
-    ob_end_clean();
+    ob_end_flush();
 }

@@ -145,6 +145,21 @@ switch ($route) {
         $page_file = "modules/todos/index.php";
         $active_page = "more";
         break;
+    case 'person-puantaj':
+        $title = "Personel Puantajı";
+        $page_file = "modules/puantaj/detail.php";
+        $active_page = "persons";
+        break;
+    case 'person-finance':
+        $title = "Personel Ödemeleri";
+        $page_file = "modules/finance/index.php";
+        $active_page = "persons";
+        break;
+    case 'person-documents':
+        $title = "Personel Evrakları";
+        $page_file = "modules/persons/documents.php";
+        $active_page = "persons";
+        break;
     case 'more':
         $title = "Daha Fazla";
         $page_file = "modules/more/index.php";
@@ -195,6 +210,36 @@ include_once __DIR__ . "/inc/head.php";
             if ($.fn && $.fn.select2) {
                 $('.select2-init').select2();
             }
+
+            // Global Swipe Handler
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            const initSwipe = () => {
+                document.querySelectorAll('.swipe-container').forEach(container => {
+                    container.removeEventListener('touchstart', handleStart);
+                    container.removeEventListener('touchend', handleEnd);
+                    container.addEventListener('touchstart', handleStart, { passive: true });
+                    container.addEventListener('touchend', handleEnd, { passive: true });
+                });
+            };
+
+            function handleStart(e) {
+                touchStartX = e.touches[0].clientX;
+                document.querySelectorAll('.swipe-container.swiped').forEach(el => {
+                    if (el !== this) el.classList.remove('swiped');
+                });
+            }
+
+            function handleEnd(e) {
+                touchEndX = e.changedTouches[0].clientX;
+                const distance = touchStartX - touchEndX;
+                if (distance > 60) this.classList.add('swiped'); // Swipe Left
+                else if (distance < -60) this.classList.remove('swiped'); // Swipe Right
+            }
+
+            initSwipe();
+            window.reInitSwipe = initSwipe;
         });
     </script>
 </body>

@@ -92,10 +92,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_person'])) {
       </a>
       <h2 class="mb-0 text-semibold" style="letter-spacing: -0.5px;">Personel Düzenle</h2>
     </div>
-    
-    <button type="button" class="btn btn-icon btn-sm btn-outline-danger border-0 bg-danger-lt rounded-circle" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">
-      <i class="ti ti-trash" style="font-size: 1.1rem;"></i>
-    </button>
+
+    <!-- Üç Nokta Menü (Sekmeler) -->
+    <div class="dropdown">
+      <button class="btn btn-icon btn-ghost-secondary rounded-circle shadow-none" type="button" id="personTabsDropdown" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" style="width: 40px; height: 40px;">
+        <i class="ti ti-dots-vertical fs-2"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2" aria-labelledby="personTabsDropdown" style="border-radius: 16px; margin-top: 8px; min-width: 220px; z-index: 2000;">
+        <li>
+          <a class="dropdown-item active rounded-3 py-2 text-semibold mb-1" href="#">
+            <i class="ti ti-user-circle me-2"></i> Personel Bilgileri
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item rounded-3 py-2 text-semibold mb-1" href="puantaj-detail?person_id=<?php echo $id_encrypted; ?>">
+            <i class="ti ti-calendar-event me-2"></i> Puantaj Cetveli
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item rounded-3 py-2 text-semibold mb-1" href="finance?person_id=<?php echo $id_encrypted; ?>">
+            <i class="ti ti-cash-banknote me-2"></i> Ödemeler & Finans
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item rounded-3 py-2 text-semibold" href="documents?person_id=<?php echo $id_encrypted; ?>">
+            <i class="ti ti-file-text me-2"></i> Evraklar & Belgeler
+          </a>
+        </li>
+      </ul>
+    </div>
   </div>
 
   <?php if ($message): ?>
@@ -219,28 +244,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_person'])) {
   </div>
 </div>
 
-<!-- Silme Onay Modalı -->
-<div class="modal fade modal-blur" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-sm modal-dialog-centered">
-    <div class="modal-content shadow-lg border-0" style="border-radius: 20px;">
-      <div class="modal-body text-center py-4">
-        <div class="mb-3 text-danger">
-          <i class="ti ti-alert-triangle" style="font-size: 3rem;"></i>
-        </div>
-        <h3 class="mb-2">Emin misiniz?</h3>
-        <p class="text-muted text-sm px-3"><strong><?php echo htmlspecialchars($person->full_name); ?></strong> isimli personeli silmek istediğinize emin misiniz? Bu işlem geri alınamaz.</p>
-      </div>
-      <div class="modal-footer bg-light-lt border-0 d-flex gap-2">
-        <button type="button" class="btn btn-link link-secondary w-100 m-0" data-bs-dismiss="modal">İptal</button>
-        <form method="POST" class="w-100 m-0">
-          <button type="submit" name="delete_person" class="btn btn-danger w-100 m-0">Evet, Sil</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
+
+
+<script>
+$(document).ready(function() {
+    // Dropdown Manuel Tetikleyici (Bootstrap Popper sorunlarını aşmak için)
+    $(document).on('click', '#personTabsDropdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var menu = $(this).next('.dropdown-menu');
+        $('.dropdown-menu').not(menu).removeClass('show'); // Diğerlerini kapat
+        menu.toggleClass('show');
+    });
+
+    // Dışarı tıklayınca kapatma
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.dropdown').length) {
+            $('.dropdown-menu').removeClass('show');
+        }
+    });
+});
+</script>
 
 <style>
+.dropdown-menu.show {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+}
+.dropdown-menu {
+    transition: all 0.2s ease-in-out;
+    transform: translateY(10px);
+    display: none;
+    right: 0 !important; /* Sağa hizala ki sola doğru açılsın */
+    left: auto !important;
+}
 .form-control-modern, .form-select-modern {
     border-radius: 12px;
     padding: 0.65rem 1rem;

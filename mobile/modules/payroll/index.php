@@ -38,7 +38,7 @@ if ($view == 'personnel') {
 <div class="container px-2">
   
   <!-- Üst Başlık Alanı -->
-  <div class="mb-4 d-flex align-items-center justify-content-between pt-2 px-1">
+  <div class="mb-2 d-flex align-items-center justify-content-between pt-2 px-1">
     <div class="d-flex align-items-center">
       <?php if ($view != 'periods'): ?>
         <a href="<?php echo $back_url; ?>" class="btn btn-icon btn-ghost-secondary me-2 rounded-circle btn-active-scale">
@@ -73,7 +73,7 @@ if ($view == 'personnel') {
 
   <?php if ($view == 'periods'): ?>
     <!-- DÖNEM LİSTESİ -->
-    <div class="row g-3">
+    <div class="row g-1">
       <?php 
       $current_month = date('n');
       $current_year = date('Y');
@@ -85,7 +85,7 @@ if ($view == 'personnel') {
       ?>
         <div class="col-12">
           <a href="index.php?route=payroll&view=personnel&year=<?php echo $year; ?>&month=<?php echo $m; ?>" 
-             class="mobile-card d-block text-decoration-none p-3 shadow-sm <?php echo $is_active ? 'border-primary' : ''; ?>">
+             class="mobile-card d-block text-decoration-none p-2 shadow-sm <?php echo $is_active ? 'border-primary' : ''; ?>">
             <div class="d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center">
                 <div class="avatar avatar-md rounded-circle bg-primary-lt text-primary me-3 border border-white shadow-sm">
@@ -124,7 +124,7 @@ if ($view == 'personnel') {
     ?>
 
     <!-- Kasa Tasarımı Özet Kartları -->
-    <div class="row g-3 mb-4">
+    <div class="row g-1 mb-2">
       <div class="col-6">
         <div class="mobile-card p-3 mb-0 border-0 shadow-sm" style="background: rgba(47, 179, 68, 0.1); color: #2fb344; border-radius: 16px;">
           <div class="text-xs text-uppercase font-weight-bold mb-1" style="font-size: 0.65rem; opacity: 0.8;">TOPLAM HAKEDİŞ</div>
@@ -268,7 +268,11 @@ $(document).ready(function() {
       title: 'Hesaplanıyor...',
       text: 'Lütfen bekleyiniz, dönem bordrosu güncelleniyor.',
       allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading(); setTimeout(() => { location.reload(); }, 1500); }
+      showConfirmButton: false,
+      didOpen: () => { 
+        Swal.showLoading(); 
+        setTimeout(() => { location.reload(); }, 1500); 
+      }
     });
   });
 });

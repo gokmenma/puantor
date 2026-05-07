@@ -158,6 +158,8 @@ class Financial extends Db
                 "status" => "error",
                 "message" => "Geçerli bir tutar giriniz!"
             ];
+            ob_clean();
+            header('Content-Type: application/json');
             echo json_encode($res);
             exit();
 
@@ -171,6 +173,8 @@ class Financial extends Db
                 "status" => "error",
                 "message" => "İşlem Türünü seçiniz!"
             ];
+            ob_clean();
+            header('Content-Type: application/json');
             echo json_encode($res);
             exit();
 

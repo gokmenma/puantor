@@ -31,7 +31,7 @@ foreach($projects as $p) {
   </div>
 
   <!-- Kasa Tasarımı Özet Kartları -->
-  <div class="row g-3 mb-4">
+  <div class="row g-1 mb-2">
     <div class="col-6">
       <div class="mobile-card p-3 mb-0 border-0 shadow-sm" style="background: rgba(47, 179, 68, 0.1); color: #2fb344; border-radius: 16px;">
         <div class="text-xs text-uppercase font-weight-bold mb-1" style="font-size: 0.65rem; opacity: 0.8;">AKTİF PROJELER</div>

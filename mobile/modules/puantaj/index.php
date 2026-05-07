@@ -25,23 +25,38 @@ $grouped_types = [];
 foreach ($puantaj_types as $type) {
     $grouped_types[$type->Turu][] = $type;
 }
+
+// Tarih navigasyonu için hesaplamalar
+$prev_date = date('Y-m-d', strtotime($selected_date . ' -1 day'));
+$next_date = date('Y-m-d', strtotime($selected_date . ' +1 day'));
+$today = date('Y-m-d');
+$is_today_or_future = ($selected_date >= $today);
 ?>
 
 <div class="container px-0">
     <div class="mb-4">
         <div class="d-flex align-items-center justify-content-between mb-2">
             <h2 class="mb-0 text-semibold" style="letter-spacing: -0.5px;">Hızlı Puantaj</h2>
-            <div class="d-flex gap-2">
-                <a href="puantaj-detail" class="btn btn-icon btn-sm btn-outline-secondary border-0" title="Aylık Özet">
-                    <i class="ti ti-list-details"></i>
-                </a>
-                <div class="position-relative d-inline-block">
-                    <input type="text" id="datePicker" class="form-control form-control-sm border-0 bg-secondary-lt text-bold text-center" 
-                           value="<?php echo date('d.m.Y', strtotime($selected_date)); ?>" 
-                           style="width: 130px; border-radius: 10px; cursor: pointer; padding-right: 2rem;">
-                    <i class="ti ti-calendar position-absolute text-muted" style="right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 1rem;"></i>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="puantaj?date=<?php echo $prev_date; ?>" class="btn btn-icon bg-secondary-lt border-0 text-secondary rounded-3" style="width: 34px; height: 34px;" title="Önceki Gün">
+                        <i class="ti ti-chevron-left fs-3"></i>
+                    </a>
+                    <div class="position-relative d-inline-block">
+                        <input type="text" id="datePicker" class="form-control form-control-sm border-0 bg-secondary-lt text-bold text-center" 
+                               value="<?php echo date('d.m.Y', strtotime($selected_date)); ?>" 
+                               style="width: 100px; height: 34px; border-radius: 10px; cursor: pointer; padding-right: 1.6rem; font-size: 0.82rem; color: #1d273b !important;">
+                        <i class="ti ti-calendar position-absolute text-muted" style="right: 6px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 0.85rem;"></i>
+                    </div>
+                    <?php if (!$is_today_or_future): ?>
+                        <a href="puantaj?date=<?php echo $next_date; ?>" class="btn btn-icon bg-secondary-lt border-0 text-secondary rounded-3" style="width: 34px; height: 34px;" title="Sonraki Gün">
+                            <i class="ti ti-chevron-right fs-3"></i>
+                        </a>
+                    <?php else: ?>
+                        <button class="btn btn-icon bg-secondary-lt border-0 text-secondary rounded-3 disabled" style="width: 34px; height: 34px; opacity: 0.3;" disabled>
+                            <i class="ti ti-chevron-right fs-3"></i>
+                        </button>
+                    <?php endif; ?>
                 </div>
-            </div>
         </div>
         <div class="d-flex gap-2 overflow-auto pb-2 no-scrollbar">
             <button class="btn btn-sm btn-pill <?php echo $selected_date == date('Y-m-d') ? 'btn-primary' : 'btn-outline-primary'; ?>" 
@@ -333,6 +348,7 @@ document.addEventListener('DOMContentLoaded', function() {
     flatpickr("#datePicker", {
         dateFormat: "d.m.Y",
         defaultDate: "<?php echo date('d.m.Y', strtotime($selected_date)); ?>",
+        maxDate: "today",
         onChange: function(selectedDates, dateStr, instance) {
             const dateParts = dateStr.split(".");
             const ymdDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
