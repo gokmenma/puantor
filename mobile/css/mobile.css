@@ -626,10 +626,11 @@ body[data-bs-theme="dark"] .swal2-styled.swal2-cancel {
     border-radius: 18px !important;
     box-shadow: 0 15px 35px rgba(0,0,0,0.08) !important;
     font-family: inherit !important;
-    width: 300px !important;
-    padding: 8px !important;
+    width: 312px !important;
+    padding: 6px !important;
     z-index: 10000 !important; /* Above all modals */
     margin-top: 5px !important;
+    box-sizing: border-box !important;
 }
 
 body[data-bs-theme="dark"] .flatpickr-calendar {
@@ -638,9 +639,30 @@ body[data-bs-theme="dark"] .flatpickr-calendar {
     box-shadow: 0 15px 35px rgba(0,0,0,0.3) !important;
 }
 
+.flatpickr-days, .flatpickr-weeks {
+    width: 100% !important;
+}
+
+.dayContainer {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-around !important;
+}
+
 .flatpickr-day {
     border-radius: 10px !important;
     transition: all 0.2s ease !important;
+    flex: 1 0 14% !important;
+    max-width: 38px !important;
+    height: 38px !important;
+    line-height: 38px !important;
+    margin: 1px 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .flatpickr-day.selected, 
@@ -668,19 +690,41 @@ body[data-bs-theme="dark"] .flatpickr-day.flatpickr-disabled {
     color: rgba(255,255,255,0.1) !important;
 }
 
+.flatpickr-months {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
 .flatpickr-months .flatpickr-month {
     color: inherit !important;
     height: 45px !important;
+    flex: 1 !important;
+}
+
+.flatpickr-current-month {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .flatpickr-current-month .flatpickr-monthDropdown-months {
     font-weight: 700 !important;
 }
 
+.flatpickr-weekdays {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-around !important;
+}
+
 span.flatpickr-weekday {
     font-weight: 600 !important;
     color: #94a3b8 !important;
     font-size: 0.75rem !important;
+    flex: 1 !important;
+    text-align: center !important;
+    max-width: 38px !important;
 }
 
 .flatpickr-calendar.arrowTop:before,

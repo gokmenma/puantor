@@ -37,6 +37,11 @@ if (!$person || $person->firm_id != $firm_id) {
     exit();
 }
 
+$personProjects = $projectsModel->getProjectsByPerson($id);
+$personProjectsIds = array_map(function ($project) {
+    return $project->project_id;
+}, $personProjects);
+
 $projects = $projectsModel->getProjectsByFirm($firm_id);
 
 // Ay ve Yıl Navigasyonu
@@ -68,6 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_person'])) {
         $tc_no = substr($tc_no, 0, 11);
     }
     
+    $selectedProjects = $_POST['person_project'] ?? [];
+    $primary_project_id = !empty($selectedProjects) ? $selectedProjects[0] : 0;
+
     $data = [
         'id' => $id,
         'firm_id' => $firm_id,
@@ -77,10 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_person'])) {
         'email' => $_POST['email'] ?? '',
         'daily_wages' => $_POST['daily_wage'] ?? 0.00,
         'wage_type' => $_POST['wage_type'] ?? ($person->wage_type ?? 2),
-        'job_start_date' => $_POST['job_start_date'] ?? null,
-        'job_end_date' => $_POST['job_end_date'] ?? null,
+        'job_start_date' => !empty($_POST['job_start_date']) ? $_POST['job_start_date'] : null,
+        'job_end_date' => !empty($_POST['job_end_date']) ? $_POST['job_end_date'] : null,
         'job' => $_POST['job'] ?? '',
-        'project_id' => $_POST['project_id'] ?? 0,
+        'project_id' => $primary_project_id,
         'address' => $_POST['address'] ?? ''
     ];
 
@@ -91,10 +99,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_person'])) {
     
     try {
         $personsModel->saveWithAttr($data);
+        
+        // Çoklu Proje Kaydetme
+        if (isset($_POST['person_project'])) {
+            $projectsModel->savePersonProjects($id, $_POST['person_project']);
+        } else {
+            $projectsModel->savePersonProjects($id, []);
+        }
+
         $message = "Personel başarıyla güncellendi.";
         $status = "success";
         // Güncel veriyi tekrar çek
         $person = $personsModel->find($id);
+        
+        // Değişkenleri güncelle
+        $personProjects = $projectsModel->getProjectsByPerson($id);
+        $personProjectsIds = array_map(function ($project) {
+            return $project->project_id;
+        }, $personProjects);
+
     } catch (Exception $e) {
         $message = "Hata: " . $e->getMessage();
         $status = "danger";
@@ -155,6 +178,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_person'])) {
       </ul>
     </div>
   </div>
+
+  <style>
+    /* Premium Select2 Multi-Select Styling */
+    .select2-container--default .select2-selection--multiple {
+      border: 1px solid var(--tblr-border-color, #e6e7e9) !important;
+      border-radius: 12px !important;
+      padding: 10px 14px !important;
+      min-height: 56px !important;
+      background-color: var(--tblr-bg-surface, #ffffff) !important;
+      display: flex !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
+      transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--multiple {
+      border-color: #206bc4 !important;
+      box-shadow: 0 0 0 0.25rem rgba(32, 107, 196, .25) !important;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+      background-color: rgba(32, 107, 196, 0.08) !important;
+      border: 1px solid rgba(32, 107, 196, 0.18) !important;
+      border-radius: 8px !important;
+      color: #206bc4 !important;
+      font-size: 0.85rem !important;
+      font-weight: 600 !important;
+      margin: 3px !important;
+      padding: 4px 10px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+      color: #206bc4 !important;
+      border-right: none !important;
+      margin-right: 6px !important;
+      font-weight: bold !important;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+      background-color: transparent !important;
+      color: #d63939 !important;
+    }
+    .select2-container--default .select2-search--inline .select2-search__field {
+      margin-top: 0 !important;
+      height: 26px !important;
+      font-family: inherit !important;
+      color: var(--tblr-body-color, #354052) !important;
+    }
+    body[data-bs-theme="dark"] .select2-container--default .select2-selection--multiple {
+      background-color: #1a2234 !important;
+      border-color: #2e394f !important;
+    }
+    body[data-bs-theme="dark"] .select2-dropdown {
+      background-color: #1a2234 !important;
+      border-color: #2e394f !important;
+      color: #f4f6fa !important;
+    }
+    body[data-bs-theme="dark"] .select2-results__option--selectable {
+      color: #f4f6fa !important;
+    }
+    body[data-bs-theme="dark"] .select2-results__option--highlighted[aria-selected] {
+      background-color: #206bc4 !important;
+      color: #ffffff !important;
+    }
+  </style>
 
   <!-- Tab: Personel Bilgileri -->
   <div id="tab-info" class="person-tab-content">
@@ -235,13 +321,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_person'])) {
             <div class="row g-2 mb-3">
               <div class="col-6">
                 <div class="form-floating">
-                  <input type="date" name="job_start_date" class="form-control" id="floatingStartDate" value="<?php echo $person->job_start_date; ?>" placeholder="İşe Giriş">
+                  <input type="text" name="job_start_date" class="form-control flatpickr" id="floatingStartDate" value="<?php echo htmlspecialchars($person->job_start_date ?? ''); ?>" placeholder="İşe Giriş" readonly>
                   <label for="floatingStartDate">İşe Giriş</label>
                 </div>
               </div>
               <div class="col-6">
                 <div class="form-floating">
-                  <input type="date" name="job_end_date" class="form-control" id="floatingEndDate" value="<?php echo $person->job_end_date; ?>" placeholder="İşten Çıkış">
+                  <input type="text" name="job_end_date" class="form-control flatpickr" id="floatingEndDate" value="<?php echo htmlspecialchars($person->job_end_date ?? ''); ?>" placeholder="İşten Çıkış" readonly>
                   <label for="floatingEndDate">İşten Çıkış</label>
                 </div>
               </div>
@@ -251,16 +337,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_person'])) {
           <!-- Proje & Adres -->
           <div class="col-12">
             <label class="form-label text-muted text-xs text-uppercase font-weight-bold mb-2">Detaylar</label>
-            <div class="form-floating mb-3">
-              <select name="project_id" id="floatingProject" class="form-select select2-init">
-                <option value="0">Varsayılan Proje Seçin</option>
+            <div class="form-group mb-3">
+              <label for="floatingPersonProjects" class="form-label text-semibold text-xs text-muted text-uppercase mb-2">Çalıştığı Projeler (Çoklu Seçim)</label>
+              <select name="person_project[]" id="floatingPersonProjects" class="form-select select2-init" multiple="multiple" data-placeholder="Projeleri Seçin" style="width: 100%;">
                 <?php foreach ($projects as $project): ?>
-                  <option value="<?php echo $project->id; ?>" <?php echo ($person->project_id == $project->id) ? 'selected' : ''; ?>>
+                  <option value="<?php echo $project->id; ?>" <?php echo in_array($project->id, $personProjectsIds) ? 'selected' : ''; ?>>
                     <?php echo htmlspecialchars($project->project_name); ?>
                   </option>
                 <?php endforeach; ?>
               </select>
-              <label for="floatingProject">Varsayılan Proje</label>
             </div>
 
             <div class="form-floating mb-3">

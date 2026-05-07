@@ -13,6 +13,7 @@ $firm_id = $_SESSION['firm_id'] ?? 0;
 $projects = $projectsModel->getProjectsByFirm($firm_id);
 
 $message = "";
+$status = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_person'])) {
     $tc_no = trim($_POST['tc_no'] ?? '');
     if (strlen($tc_no) > 11) {
@@ -24,15 +25,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_person'])) {
         'kimlik_no' => Security::encrypt($tc_no),
         'phone' => $_POST['phone'],
         'daily_wages' => $_POST['daily_wage'],
-        'job_start_date' => $_POST['job_start_date'],
+        'job_start_date' => !empty($_POST['job_start_date']) ? date('d.m.Y', strtotime($_POST['job_start_date'])) : date('d.m.Y'),
         'project_id' => $_POST['project_id']
     ];
     
     try {
         $personsModel->saveWithAttr($data);
         $message = "Personel başarıyla eklendi.";
+        $status = "success";
     } catch (Exception $e) {
         $message = "Hata: " . $e->getMessage();
+        $status = "danger";
     }
 }
 ?>
