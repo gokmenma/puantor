@@ -7,21 +7,34 @@ session_start();
 define("ROOT", dirname(__DIR__));
 date_default_timezone_set('Europe/Istanbul');
 
-// Oturum kontrolü
-if (!isset($_SESSION['user']) || empty($_SESSION['user'])) {
-    header("Location: sign-in.php");
-    exit();
-}
-
 require_once __DIR__ . "/../Database/db.php";
 require_once __DIR__ . "/../Model/UserModel.php";
 require_once __DIR__ . "/../Model/MyFirmModel.php";
 
 $User = new UserModel();
+
+// Oturum kontrolü
+if (!isset($_SESSION['user']) || empty($_SESSION['user'])) {
+    if (isset($_COOKIE['remember_me'])) {
+        $token = $_COOKIE['remember_me'];
+        $cookie_user = $User->getUserBySessionToken($token);
+        if ($cookie_user && $cookie_user->status == 1) {
+            $_SESSION['user'] = $cookie_user;
+            $_SESSION['firm_id'] = $cookie_user->firm_id;
+        } else {
+            header("Location: sign-in.php");
+            exit();
+        }
+    } else {
+        header("Location: sign-in.php");
+        exit();
+    }
+}
+
 $user = $User->find($_SESSION['user']->id) ?? null;
 
 if (!$user) {
-    header("Location: /sign-in.php");
+    header("Location: sign-in.php");
     exit();
 }
 
@@ -128,6 +141,11 @@ switch ($route) {
     case 'projects':
         $title = "Projeler";
         $page_file = "modules/projects/index.php";
+        $active_page = "more";
+        break;
+    case 'project-manage':
+        $title = "Proje Detay / Güncelle";
+        $page_file = "modules/projects/manage.php";
         $active_page = "more";
         break;
     case 'finance':

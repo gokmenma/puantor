@@ -6,9 +6,20 @@ session_start();
 define("ROOT", dirname(__DIR__));
 require_once ROOT . "/Database/db.php";
 require_once ROOT . "/Model/UserModel.php";
+require_once ROOT . "/Model/PasswordModel.php";
 require_once ROOT . "/App/Helper/security.php";
 
 $User = new UserModel();
+
+// Beni Hatırla Kontrolü (Cookie)
+if ((!isset($_SESSION['user']) || empty($_SESSION['user'])) && isset($_COOKIE['remember_me'])) {
+    $token = $_COOKIE['remember_me'];
+    $cookie_user = $User->getUserBySessionToken($token);
+    if ($cookie_user && $cookie_user->status == 1) {
+        $_SESSION['user'] = $cookie_user;
+        $_SESSION['firm_id'] = $cookie_user->firm_id;
+    }
+}
 
 if (isset($_SESSION['user']) && !empty($_SESSION['user'])) {
     header("Location: index.php");
@@ -16,25 +27,84 @@ if (isset($_SESSION['user']) && !empty($_SESSION['user'])) {
 }
 
 $error = "";
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
+$success_message = "";
+$view = $_GET['view'] ?? 'login';
 
-    if (empty($email) || empty($password)) {
-        $error = "Lütfen tüm alanları doldurun.";
-    } else {
-        $user = $User->getUserByEmail($email);
-        if ($user && password_verify($password, $user->password)) {
-            if ($user->status == 1) {
-                $_SESSION['user'] = $user;
-                $_SESSION['firm_id'] = $user->firm_id; // Varsayılan firmayı ata
-                header("Location: index.php");
-                exit();
-            } else {
-                $error = "Hesabınız henüz aktif değil.";
-            }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['login'])) {
+        $email = $_POST['email'] ?? '';
+        $password = $_POST['password'] ?? '';
+        $view = 'login';
+
+        if (empty($email) || empty($password)) {
+            $error = "Lütfen tüm alanları doldurun.";
         } else {
-            $error = "Hatalı email adresi veya şifre.";
+            $user = $User->getUserByEmail($email);
+            if ($user && password_verify($password, $user->password)) {
+                if ($user->status == 1) {
+                    $_SESSION['user'] = $user;
+                    $_SESSION['firm_id'] = $user->firm_id; // Varsayılan firmayı ata
+                    
+                    // Beni Hatırla seçildiyse
+                    if (isset($_POST['remember'])) {
+                        $token = bin2hex(random_bytes(32));
+                        $User->setToken($user->id, $token);
+                        setcookie('remember_me', $token, time() + 30 * 24 * 3600, '/');
+                    }
+                    
+                    header("Location: index.php");
+                    exit();
+                } else {
+                    $error = "Hesabınız henüz aktif değil.";
+                }
+            } else {
+                $error = "Hatalı email adresi veya şifre.";
+            }
+        }
+    } elseif (isset($_POST['forgot'])) {
+        $email = $_POST['email'] ?? '';
+        $view = 'forgot';
+
+        if (empty($email)) {
+            $error = "Email adresi boş bırakılamaz.";
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = "Geçersiz e-posta adresi.";
+        } else {
+            $user = $User->getUserByEmail($email);
+            if (!$user) {
+                $error = "Bu e-posta adresi ile kayıtlı bir hesap bulunamadı.";
+            } else {
+                $PasswordModel = new PasswordModel();
+                $token = bin2hex(random_bytes(32));
+                
+                $PasswordModel->setPasswordReset($email, $token);
+                
+                ob_start();
+                include ROOT . '/forgot-password-email.php';
+                $content = ob_get_clean();
+
+                try {
+                    require_once ROOT . "/mail-settings.php";
+
+                    $mail->setFrom('sifre@puantor.com.tr', 'Puantor');
+                    $mail->addAddress($email);
+                    $mail->isHTML(true);
+
+                    $mail->Subject = 'Şifre Sıfırlama';
+                    $mail->Body = $content;
+                    $mail->AltBody = strip_tags($content);
+                    $mail->CharSet = 'UTF-8';
+
+                    if (file_exists(ROOT . '/static/png/lock.png')) {
+                        $mail->AddEmbeddedImage(ROOT . '/static/png/lock.png', 'lock-icon');
+                    }
+
+                    $mail->send();
+                    $success_message = "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.";
+                } catch (Exception $e) {
+                    $error = "E-posta gönderilemedi. Hata: {$mail->ErrorInfo}";
+                }
+            }
         }
     }
 }
@@ -283,15 +353,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
 
     <div class="login-container">
         <div>
-            <div class="avatar-logo">
-                <svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112 112" style="width: 40px; height: 40px; fill: currentColor;">
-                    <circle cx="56" cy="56" r="48" fill="none" stroke="currentColor" stroke-width="4"/>
-                    <path d="M40 75V37h14.5c8 0 13.5 5 13.5 12s-5.5 12-13.5 12H48v14H40zm16-26c0-3.5-2.5-5.5-6.5-5.5H48v11h1.5c4 0 6.5-2 6.5-5.5z"/>
-                </svg>
-            </div>
             <div class="text-center mb-4">
-                <h1 class="login-title mb-1">Puantor Mobil</h1>
-                <p class="login-subtitle">Yönetici hesabı ile giriş yapın</p>
+                <div class="mb-3 d-flex justify-content-center align-items-center" style="height: 100px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.03));">
+                    <?php 
+                    $logoPath = ROOT . '/static/Logo-ai.svg';
+                    if (file_exists($logoPath)) {
+                        $svg = file_get_contents($logoPath);
+                        $svg = str_replace('<svg ', '<svg style="height: 100px; width: auto; max-width: 100%;" ', $svg);
+                        echo $svg;
+                    } else {
+                        echo '<img src="../static/Logo-ai.svg" style="height: 100px; max-width: 100%;" alt="Puantor Logo">';
+                    }
+                    ?>
+                </div>
+                <?php if ($view === 'forgot'): ?>
+                    <h1 class="login-title mb-1">Şifre Sıfırlama</h1>
+                    <p class="login-subtitle">Lütfen hesabınıza ait e-posta adresini girin</p>
+                <?php else: ?>
+                    <p class="login-subtitle">Yönetici hesabı ile giriş yapın</p>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -302,21 +382,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                     <span><?php echo $error; ?></span>
                 </div>
             <?php endif; ?>
+            <?php if ($success_message): ?>
+                <div class="alert alert-success d-flex align-items-center gap-2 py-2.5 px-3 mb-3 text-sm animate-fade-in" style="border-radius: 14px; background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;">
+                    <i class="ti ti-circle-check" style="font-size: 1.15rem; flex-shrink: 0;"></i>
+                    <span><?php echo $success_message; ?></span>
+                </div>
+            <?php endif; ?>
 
-            <form method="POST" action="">
-                <div class="form-floating mb-3">
-                    <input type="email" name="email" class="form-control" id="floatingEmail" placeholder="ad@sirket.com" required autocomplete="email">
-                    <label for="floatingEmail">Email Adresi</label>
-                </div>
-                <div class="form-floating mb-4 position-relative">
-                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
-                    <label for="password">Şifre</label>
-                    <span class="input-icon-addon-right" id="togglePasswordBtn" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 10;">
-                        <i class="ti ti-eye" id="togglePasswordIcon"></i>
-                    </span>
-                </div>
-                <button type="submit" name="login" class="btn btn-primary w-100 mb-3">Giriş Yap</button>
-            </form>
+            <?php if ($view === 'forgot'): ?>
+                <form method="POST" action="">
+                    <div class="form-floating mb-4">
+                        <input type="email" name="email" class="form-control" id="floatingEmailForgot" placeholder="ad@sirket.com" required value="<?php echo htmlspecialchars($email ?? ''); ?>">
+                        <label for="floatingEmailForgot">Email Adresi</label>
+                    </div>
+                    <button type="submit" name="forgot" class="btn btn-primary w-100 mb-3">
+                        <i class="ti ti-mail me-2"></i>Bağlantı Gönder
+                    </button>
+                    <div class="text-center">
+                        <a href="?view=login" class="text-xs text-secondary text-decoration-none hover-underline d-inline-flex align-items-center gap-1" style="font-weight: 600;">
+                            <i class="ti ti-arrow-left"></i> Giriş Ekranına Dön
+                        </a>
+                    </div>
+                </form>
+            <?php else: ?>
+                <form method="POST" action="">
+                    <div class="form-floating mb-3">
+                        <input type="email" name="email" class="form-control" id="floatingEmail" placeholder="ad@sirket.com" required autocomplete="email" value="<?php echo htmlspecialchars($email ?? ''); ?>">
+                        <label for="floatingEmail">Email Adresi</label>
+                    </div>
+                    <div class="form-floating mb-3 position-relative">
+                        <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+                        <label for="password">Şifre</label>
+                        <span class="input-icon-addon-right" id="togglePasswordBtn" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 10;">
+                            <i class="ti ti-eye" id="togglePasswordIcon"></i>
+                        </span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <label class="form-check m-0" style="cursor: pointer;">
+                            <input type="checkbox" name="remember" class="form-check-input" id="rememberMe" style="cursor: pointer;">
+                            <span class="form-check-label text-xs text-secondary" style="font-weight: 500; user-select: none;">Beni Hatırla</span>
+                        </label>
+                        <a href="?view=forgot" class="text-xs text-primary text-decoration-none hover-underline" style="font-weight: 600;">Şifremi Unuttum</a>
+                    </div>
+                    <button type="submit" name="login" class="btn btn-primary w-100 mb-3">Giriş Yap</button>
+                </form>
+            <?php endif; ?>
         </div>
 
         <div class="text-center mt-auto">
@@ -328,19 +438,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     </div>
 
     <script>
-        document.getElementById('togglePasswordBtn').addEventListener('click', function() {
-            const passwordInput = document.getElementById('password');
-            const icon = document.getElementById('togglePasswordIcon');
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                icon.classList.remove('ti-eye');
-                icon.classList.add('ti-eye-off');
-            } else {
-                passwordInput.type = 'password';
-                icon.classList.remove('ti-eye-off');
-                icon.classList.add('ti-eye');
-            }
-        });
+        const toggleBtn = document.getElementById('togglePasswordBtn');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                const passwordInput = document.getElementById('password');
+                const icon = document.getElementById('togglePasswordIcon');
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('ti-eye');
+                    icon.classList.add('ti-eye-off');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('ti-eye-off');
+                    icon.classList.add('ti-eye');
+                }
+            });
+        }
     </script>
 </body>
 </html>

@@ -265,6 +265,7 @@ $(document).ready(function() {
 
   $(document).on('touchstart', '.person-item-content', function(e) {
       touchStartX = e.originalEvent.touches[0].clientX;
+      touchMoveX = touchStartX; // Initialize touchMoveX to avoid stale values triggering swipe on tap
       currentSwipeItem = $(this);
       
       // Reset other open items

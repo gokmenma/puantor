@@ -2,8 +2,10 @@
 // Puantor Mobil - Proje Listesi (Kasa Tasarımı Uyumlu)
 require_once ROOT . "/Model/Projects.php";
 require_once ROOT . "/App/Helper/helper.php";
+require_once ROOT . "/App/Helper/security.php";
 
 use App\Helper\Helper;
+use App\Helper\Security;
 
 $projectsModel = new Projects();
 $firm_id = $_SESSION['firm_id'] ?? 0;
@@ -25,9 +27,9 @@ foreach($projects as $p) {
       <h2 class="mb-0 text-bold" style="letter-spacing: -0.8px; font-size: 1.5rem;">Projeler</h2>
       <p class="text-muted text-xs mb-0">Toplam <?php echo count($projects); ?> proje tanımlı.</p>
     </div>
-    <button class="btn btn-icon btn-primary rounded-circle shadow-sm btn-active-scale" id="btn-add-project">
+    <a href="project-manage" class="btn btn-icon btn-primary rounded-circle shadow-sm btn-active-scale" id="btn-add-project">
       <i class="ti ti-plus fs-2"></i>
-    </button>
+    </a>
   </div>
 
   <!-- Kasa Tasarımı Özet Kartları -->
@@ -64,9 +66,10 @@ foreach($projects as $p) {
         $status = $project->status ?? 1;
         $person_count = count($projectsModel->getPersonFromProject($project->id));
         $is_active = $status == 1;
+        $id_encrypted = Security::encrypt($project->id);
       ?>
-        <a href="index.php?p=projects/manage&id=<?php echo $project->id; ?>" 
-           class="list-group-item project-item border-0 border-bottom py-3 px-3" data-name="<?php echo strtolower($project->project_name . ' ' . ($project->location ?? '')); ?>">
+        <a href="project-manage?id=<?php echo $id_encrypted; ?>" 
+           class="list-group-item project-item border-0 border-bottom py-3 px-3" data-name="<?php echo strtolower($project->project_name . ' ' . ($project->address ?? '')); ?>">
           <div class="d-flex align-items-center justify-content-between w-100">
             <div class="d-flex align-items-center gap-3">
               <div class="avatar avatar-md rounded-circle d-flex align-items-center justify-content-center border border-white shadow-sm" style="background: <?php echo $is_active ? 'rgba(47, 179, 68, 0.15)' : 'rgba(214, 63, 63, 0.15)'; ?>; color: <?php echo $is_active ? '#2fb344' : '#d63f3f'; ?>; width: 42px; height: 42px;">
@@ -76,7 +79,7 @@ foreach($projects as $p) {
                 <div class="text-bold text-sm text-dark"><?php echo htmlspecialchars($project->project_name); ?></div>
                 <div class="text-muted text-xs d-flex align-items-center gap-1 mt-0.5">
                   <i class="ti ti-map-pin" style="font-size: 0.75rem;"></i>
-                  <span><?php echo htmlspecialchars($project->location ?: 'Konum Yok'); ?></span>
+                  <span><?php echo htmlspecialchars(($project->address ?? '') ?: 'Konum Yok'); ?></span>
                 </div>
               </div>
             </div>
@@ -101,16 +104,6 @@ $(document).ready(function() {
       $(this).toggle($(this).data('name').indexOf(value) > -1)
     });
   });
-
-  $('#btn-add-project').on('click', function() {
-    Swal.fire({
-      title: 'Yeni Proje',
-      text: 'Proje ekleme ekranına yönlendiriliyorsunuz.',
-      icon: 'info',
-      timer: 1000,
-      showConfirmButton: false
-    });
-  });
 });
 </script>
 
@@ -118,4 +111,5 @@ $(document).ready(function() {
 .text-bold { font-weight: 700 !important; }
 .text-semibold { font-weight: 600 !important; }
 .bg-primary-lt { background-color: rgba(32, 107, 196, 0.08) !important; }
+body[data-bs-theme="dark"] .text-dark { color: #f4f6fa !important; }
 </style>

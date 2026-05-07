@@ -71,6 +71,13 @@ class UserModel extends Model
         return $sql->fetch(PDO::FETCH_OBJ);
     }
 
+    public function getUserBySessionToken($token)
+    {
+        $sql = $this->db->prepare("SELECT * FROM $this->table WHERE session_token = ?");
+        $sql->execute(array($token));
+        return $sql->fetch(PDO::FETCH_OBJ);
+    }
+
     public function getUserByResetToken($token)
     {
         $sql = $this->db->prepare("SELECT * FROM $this->table WHERE reset_token = ? ");
