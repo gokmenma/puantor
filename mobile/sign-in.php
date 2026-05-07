@@ -342,7 +342,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                margin: 2rem 0;
+                margin: 1rem 0;
             }
         }
     </style>
@@ -353,8 +353,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="login-container">
         <div>
-            <div class="text-center mb-4">
-                <div class="mb-3 d-flex justify-content-center align-items-center" style="height: 100px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.03));">
+            <div class="text-center mb-1">
+                <div class="mb-3 d-flex justify-content-center align-items-center" style="height: 80px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.03));">
                     <?php 
                     $logoPath = ROOT . '/static/Logo-ai.svg';
                     if (file_exists($logoPath)) {
@@ -429,7 +429,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
         </div>
 
-        <div class="text-center mt-auto">
+        <div class="text-center ">
             <a href="../index.php" class="text-secondary d-inline-flex align-items-center gap-1 text-xs text-decoration-none hover-underline">
                 <i class="ti ti-device-laptop" style="font-size: 1rem;"></i>
                 Masaüstü Sürüme Dön
