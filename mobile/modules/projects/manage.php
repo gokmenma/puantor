@@ -48,6 +48,8 @@ $total_person = $id > 0 ? $puantajModel->getTotalWorksPersonByProject($id) : 0;
 $total_hours = $id > 0 ? $puantajModel->getTotalWorksHourByProject($id) : 0;
 $total_amount = $id > 0 ? $puantajModel->getTotalWorksBalanceByProject($id) : 0;
 
+$project_persons = $id > 0 ? $projectsModel->getPersontoProject($firm_id, $id) : [];
+
 $budget = $project->budget ?? 0;
 if ($hakedis > $budget) {
     $range = 100;
@@ -212,6 +214,11 @@ body[data-bs-theme="dark"] .text-dark {
         <li>
           <a class="dropdown-item rounded-3 py-2 text-semibold mb-1 tab-trigger" href="#" data-tab="puantaj" data-title="Çalışma & Puantaj">
             <i class="ti ti-calendar-month me-2"></i> Çalışma & Puantaj
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item rounded-3 py-2 text-semibold mb-1 tab-trigger" href="#" data-tab="persons" data-title="Proje Personelleri">
+            <i class="ti ti-users me-2"></i> Proje Personelleri
           </a>
         </li>
         <li>
@@ -494,6 +501,66 @@ body[data-bs-theme="dark"] .text-dark {
       <?php endif; ?>
     </div>
   </div>
+  <!-- TAB 6: Proje Personelleri -->
+  <?php if ($id > 0): ?>
+  <div id="tab-persons" class="project-tab-content d-none px-2">
+    <input type="hidden" id="decrypted_project_id" value="<?php echo $id; ?>">
+    <!-- Arama ve Tümünü Seç -->
+    <div class="mobile-card p-3 shadow-sm mb-3" style="border-radius: 16px;">
+      <div class="input-icon mb-3">
+        <span class="input-icon-addon" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); z-index: 4;">
+          <i class="ti ti-search text-muted"></i>
+        </span>
+        <input type="text" id="personSearchInput" class="form-control" placeholder="Personel ara..." style="border-radius: 10px; padding-left: 36px;">
+      </div>
+      <div class="form-check form-switch mb-0 ps-0 d-flex align-items-center justify-content-between">
+        <label class="form-check-label text-bold text-sm text-dark" for="allPersonCheckMobile">Tümünü Seç / Kaldır</label>
+        <input class="form-check-input ms-0" type="checkbox" id="allPersonCheckMobile" style="width: 40px; height: 20px;">
+      </div>
+    </div>
+
+    <!-- Personel Listesi -->
+    <label class="form-label text-muted text-xs text-uppercase font-weight-bold mb-3 px-1">PERSONEL LİSTESİ</label>
+    <?php if (empty($project_persons)): ?>
+      <div class="text-center py-5 bg-white rounded-3 border mb-4" style="border-radius: 16px;">
+        <i class="ti ti-users-off text-muted mb-2" style="font-size: 2.5rem; opacity: 0.5;"></i>
+        <p class="text-muted text-sm mb-0">Henüz personel kaydı bulunmuyor.</p>
+      </div>
+    <?php else: ?>
+      <div class="mobile-card p-0 shadow-sm mb-4" style="border-radius: 20px; overflow: hidden; border: 1px solid rgba(0,0,0,0.08); background: #ffffff;" id="project-persons-list">
+        <?php foreach ($project_persons as $index => $p): 
+          $checked = $p->is_added == 1 ? "checked" : "";
+          
+          // Is last item?
+          $is_last = ($index === count($project_persons) - 1);
+          $border_style = $is_last ? '' : 'border-bottom: 1px solid rgba(0, 0, 0, 0.06);';
+          
+          // Get initials
+          $initials = mb_strtoupper(mb_substr($p->full_name, 0, 2));
+        ?>
+          <div class="person-item-card py-3 px-3 d-flex align-items-center justify-content-between" style="<?php echo $border_style; ?> transition: background-color 0.15s ease;">
+            <div class="d-flex align-items-center gap-3">
+              <div class="avatar avatar-md rounded-circle bg-blue-lt text-blue text-bold text-uppercase d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; font-size: 0.9rem; font-weight: 700; border: 1px solid rgba(32, 107, 196, 0.12);">
+                <?php echo htmlspecialchars($initials); ?>
+              </div>
+              <div>
+                <div class="person-name text-dark" style="font-weight: 700; font-size: 0.95rem; letter-spacing: -0.2px;"><?php echo htmlspecialchars($p->full_name); ?></div>
+                <div class="text-muted text-xs" style="font-weight: 500; opacity: 0.8;"><?php echo $p->wage_type == 1 ? "Beyaz Yaka" : "Mavi Yaka"; ?> • ID: <?php echo $p->id; ?></div>
+              </div>
+            </div>
+            <div>
+              <div class="form-check form-switch pe-0 mb-0">
+                <input class="form-check-input person-checkbox" type="checkbox" name="person_ids[]" value="<?php echo $p->id; ?>" <?php echo $checked; ?> style="width: 38px; height: 19px; cursor: pointer;">
+              </div>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+
+  </div>
+  <?php endif; ?>
+  <?php endif; ?>
 
   <!-- TAB 5: Proje Özet (Gelişmiş İş Zekası ve Grafik Gösterimi) -->
   <div id="tab-summary" class="project-tab-content d-none px-2">
@@ -927,6 +994,74 @@ $(document).ready(function() {
           }
       });
   });
+
+  // Personel Arama
+  $(document).on('input', '#personSearchInput', function() {
+      var query = $(this).val().toLowerCase();
+      $('.person-item-card').each(function() {
+          var name = $(this).find('.person-name').text().toLowerCase();
+          if (name.indexOf(query) !== -1) {
+              $(this).removeClass('d-none');
+          } else {
+              $(this).addClass('d-none');
+          }
+      });
+  });
+
+  // Personel Tümünü Seç ve Otomatik Kaydet
+  $(document).on('change', '#allPersonCheckMobile', function() {
+      var isChecked = $(this).is(':checked');
+      $('.person-checkbox').prop('checked', isChecked);
+      saveProjectPersonsAuto();
+  });
+
+  // Tekil Personel Değişimi ve Otomatik Kaydet
+  $(document).on('change', '.person-checkbox', function() {
+      saveProjectPersonsAuto();
+  });
+
+  function saveProjectPersonsAuto() {
+      var checkedItems = [];
+      $('.person-checkbox:checked').each(function() {
+          checkedItems.push($(this).val());
+      });
+
+      var projectId = $('#decrypted_project_id').val();
+      if (!projectId || projectId === '0') {
+          return;
+      }
+
+      let formData = new FormData();
+      formData.append("project_id", projectId);
+      formData.append("person_id", checkedItems.join(','));
+      formData.append("action", "addPersonToProject");
+
+      fetch("/api/projects/project-person.php", {
+          method: "POST",
+          body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.status === "success") {
+              const Toast = Swal.mixin({
+                  toast: true,
+                  position: 'top-end',
+                  showConfirmButton: false,
+                  timer: 1000,
+                  timerProgressBar: false
+              });
+              Toast.fire({
+                  icon: 'success',
+                  title: 'Güncellendi'
+              });
+          } else {
+              Swal.fire('Hata!', data.message, 'error');
+          }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+      });
+  }
 
   // Close swipe on clicking elsewhere
   $(document).on('touchstart', function(e) {
